@@ -1,0 +1,446 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coordinate Converter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #4B0082;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+    .converter {
+      background: white;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-top: 4px solid #4B0082;
+    }
+    h2 {
+      color: #4B0082;
+      margin-top: 0;
+    }
+    label {
+      font-weight: 500;
+      margin-top: 10px;
+      display: block;
+    }
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    button {
+      background: #4B0082;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #5a00a3;
+    }
+    .result {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <header><br/>Coordinate Converter Tool</header>
+  <div class="container">
+    
+  <h1>Coordinate Converter</h1>
+
+  <div class="converter">
+    <h2>Decimal Degrees to UTM</h2>
+    <label>Latitude:</label><input type="number" id="dd_lat" step="any">
+    <label>Longitude:</label><input type="number" id="dd_lon" step="any">
+    <button onclick="ddToUTM()">Convert</button>
+    <div class="result" id="dd_to_utm_result">
+    <p>Upload a CSV with Latitude,Longitude columns:</p>
+    <input type="file" id="dd_to_utm_file" accept=".csv" />
+    <button onclick="processDDtoUTM()">Convert & Download</button>
+    <div class="result" id="dd_to_utm_status"></div>
+    </div>
+  </div>
+
+  <div class="converter">
+    <h2>UTM to Decimal Degrees</h2>
+    <label>Easting:</label><input type="number" id="utm_easting" step="any">
+    <label>Northing:</label><input type="number" id="utm_northing" step="any">
+    <label>Zone:</label><input type="number" id="utm_zone">
+    <label>Hemisphere (N/S):</label><input type="text" id="utm_hemisphere">
+    <button onclick="utmToDD()">Convert</button>
+    <div class="result" id="utm_to_dd_result">
+    <p>Upload a CSV with Easting,Northing,Zone,Hemisphere columns:</p>
+    <input type="file" id="utm_to_dd_file" accept=".csv" />
+    <button onclick="processUTMtoDD()">Convert & Download</button>
+    <div class="result" id="utm_to_dd_status"></div>
+    </div>
+  </div>
+
+  <script>
+    function ddToUTM() {
+      const lat = parseFloat(document.getElementById('dd_lat').value);
+      const lon = parseFloat(document.getElementById('dd_lon').value);
+
+      const a = 6378137.0;
+      const f = 1 / 298.257223563;
+      const k0 = 0.9996;
+      const e = Math.sqrt(f * (2 - f));
+
+      const zone = Math.floor((lon + 180) / 6) + 1;
+      const lambda0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+
+      const phi = lat * Math.PI / 180;
+      const lambda = lon * Math.PI / 180;
+
+      const n = a / Math.sqrt(1 - Math.pow(e * Math.sin(phi), 2));
+      const t = Math.pow(Math.tan(phi), 2);
+      const c = Math.pow(e, 2) / (1 - Math.pow(e, 2)) * Math.pow(Math.cos(phi), 2);
+      const A = Math.cos(phi) * (lambda - lambda0);
+
+      const m = a * ((1 - Math.pow(e, 2)/4 - 3*Math.pow(e, 4)/64 - 5*Math.pow(e, 6)/256) * phi
+                  - (3*Math.pow(e, 2)/8 + 3*Math.pow(e, 4)/32 + 45*Math.pow(e, 6)/1024) * Math.sin(2*phi)
+                  + (15*Math.pow(e, 4)/256 + 45*Math.pow(e, 6)/1024) * Math.sin(4*phi)
+                  - (35*Math.pow(e, 6)/3072) * Math.sin(6*phi));
+
+      const easting = 500000 + k0 * n * (A + (1 - t + c) * Math.pow(A, 3)/6 +
+                        (5 - 18*t + t*t + 72*c - 58*(Math.pow(e, 2)/(1 - Math.pow(e, 2)))) * Math.pow(A, 5)/120);
+
+      const northing = k0 * (m + n * Math.tan(phi) * (Math.pow(A, 2)/2 +
+                         (5 - t + 9*c + 4*c*c) * Math.pow(A, 4)/24 +
+                         (61 - 58*t + t*t + 600*c - 330*(Math.pow(e, 2)/(1 - Math.pow(e, 2)))) * Math.pow(A, 6)/720));
+
+      const northingAdjusted = lat < 0 ? northing + 10000000 : northing;
+      const hemisphere = lat < 0 ? 'S' : 'N';
+
+      document.getElementById('dd_to_utm_result').innerText =
+        `Zone: ${zone}${hemisphere}, Easting: ${easting.toFixed(3)}, Northing: ${northingAdjusted.toFixed(3)}`;
+    }
+
+    function utmToDD() {
+      const easting = parseFloat(document.getElementById('utm_easting').value);
+      const northing = parseFloat(document.getElementById('utm_northing').value);
+      const zone = parseInt(document.getElementById('utm_zone').value);
+      const hemi = document.getElementById('utm_hemisphere').value.toUpperCase();
+
+      const a = 6378137.0;
+      const f = 1 / 298.257223563;
+      const k0 = 0.9996;
+      const e = Math.sqrt(f * (2 - f));
+      const e1sq = e * e / (1 - e * e);
+
+      const x = easting - 500000;
+      const y = hemi === 'S' ? northing - 10000000 : northing;
+
+      const lambda0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+
+      const m = y / k0;
+      const mu = m / (a * (1 - Math.pow(e, 2)/4 - 3*Math.pow(e, 4)/64 - 5*Math.pow(e, 6)/256));
+
+      const e1 = (1 - Math.sqrt(1 - Math.pow(e,2))) / (1 + Math.sqrt(1 - Math.pow(e,2)));
+      const j1 = (3*e1/2 - 27*Math.pow(e1,3)/32);
+      const j2 = (21*Math.pow(e1,2)/16 - 55*Math.pow(e1,4)/32);
+      const j3 = (151*Math.pow(e1,3)/96);
+      const j4 = (1097*Math.pow(e1,4)/512);
+      const fp = mu + j1*Math.sin(2*mu) + j2*Math.sin(4*mu) + j3*Math.sin(6*mu) + j4*Math.sin(8*mu);
+
+      const sinfp = Math.sin(fp);
+      const cosfp = Math.cos(fp);
+      const tanfp = Math.tan(fp);
+
+      const n = a / Math.sqrt(1 - Math.pow(e * sinfp, 2));
+      const r = a * (1 - Math.pow(e, 2)) / Math.pow(1 - Math.pow(e * sinfp, 2), 1.5);
+      const d = x / (n * k0);
+
+      const lat = fp - (n * tanfp / r) * (d*d/2 - (5 + 3*tanfp*tanfp + e1sq*cosfp*cosfp - 9*e1sq*tanfp*tanfp) * Math.pow(d,4)/24);
+      const lon = lambda0 + (d - (1 + 2*tanfp*tanfp + e1sq*cosfp*cosfp) * Math.pow(d,3)/6) / cosfp;
+
+      document.getElementById('utm_to_dd_result').innerText =
+        `Latitude: ${(lat*180/Math.PI).toFixed(6)}, Longitude: ${(lon*180/Math.PI).toFixed(6)}`;
+    }
+  </script>
+
+  
+<div class="converter">
+  <h2>ARC1960 (Zone 36N) to ITRF</h2>
+  <label>ARC1960 Easting (m):</label><input type="number" id="arc_easting" step="any">
+  <label>ARC1960 Northing (m):</label><input type="number" id="arc_northing" step="any">
+  <button onclick="convertARCtoITRF()">Convert</button>
+  <div class="result" id="arc_to_itrf_result"></div>
+</div>
+<script>
+  function convertARCtoITRF() {
+    const arcE = parseFloat(document.getElementById('arc_easting').value);
+    const arcN = parseFloat(document.getElementById('arc_northing').value);
+    const deltaE = -83.86;
+    const deltaN = 296.894;
+
+    const itrfE = arcE - deltaE;
+    const itrfN = arcN - deltaN;
+
+    document.getElementById('arc_to_itrf_result').innerText =
+      `ITRF Easting: ${itrfE.toFixed(3)}, Northing: ${itrfN.toFixed(3)}`;
+  }
+</script>
+
+<div class="converter">
+  <h2>ITRF to ARC1960 (Zone 36N)</h2>
+  <label>ITRF Easting (m):</label><input type="number" id="itrf_easting" step="any">
+  <label>ITRF Northing (m):</label><input type="number" id="itrf_northing" step="any">
+  <button onclick="convertITRFtoARC()">Convert</button>
+  <div class="result" id="itrf_to_arc_result">
+    <p>Upload a CSV with Easting,Northing columns:</p>
+    <input type="file" id="itrf_to_arc_file" accept=".csv" />
+    <button onclick="processITRFtoARC()">Convert & Download</button>
+    <div class="result" id="itrf_to_arc_status"></div>
+    </div>
+</div>
+<script>
+  function convertITRFtoARC() {
+    const itrfE = parseFloat(document.getElementById('itrf_easting').value);
+    const itrfN = parseFloat(document.getElementById('itrf_northing').value);
+    const deltaE = -83.86;
+    const deltaN = 296.894;
+
+    const arcE = itrfE + deltaE;
+    const arcN = itrfN + deltaN;
+
+    document.getElementById('itrf_to_arc_result').innerText =
+      `ARC1960 Easting: ${arcE.toFixed(3)}, Northing: ${arcN.toFixed(3)}`;
+  }
+</script>
+
+<div class="converter">
+  <h2>Batch Convert PNEZD CSV (ITRF to ARC1960)</h2>
+  <p>Upload a CSV file with PNEZD columns: PointID, Northing, Easting, Elevation, Description</p>
+  <input type="file" id="pnezd_file" accept=".csv" />
+  <button onclick="processPNEZD()">Convert & Download</button>
+  <div class="result" id="pnezd_status"></div>
+</div>
+<script>
+  function processPNEZD() {
+    const fileInput = document.getElementById('pnezd_file');
+    const status = document.getElementById('pnezd_status');
+
+    if (!fileInput.files.length) {
+      status.innerText = "Please upload a CSV file.";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const content = e.target.result;
+      const lines = content.trim().split('\n');
+      const header = lines[0].split(',');
+      const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
+      const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
+      if (idxN === -1 || idxE === -1) {
+        status.innerText = "Missing Easting/Northing columns.";
+        return;
+      }
+
+      const deltaE = -83.86, deltaN = 296.894;
+      const converted = [header.join(',')];
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        let e = parseFloat(cols[idxE]);
+        let n = parseFloat(cols[idxN]);
+        cols[idxE] = (e + deltaE).toFixed(3);
+        cols[idxN] = (n + deltaN).toFixed(3);
+        converted.push(cols.join(','));
+      }
+
+      const blob = new Blob([converted.join('\n')], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "converted_pnezd_arc1960.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      status.innerText = "Conversion complete. File downloaded.";
+    };
+
+    reader.readAsText(fileInput.files[0]);
+  }
+</script>
+
+<div class="converter">
+  <h2>Batch Convert UTM to Decimal Degrees (CSV)</h2>
+  <p>Upload a CSV with columns: Easting, Northing, Zone, Hemisphere</p>
+  <input type="file" id="utm_to_dd_file" accept=".csv" />
+  <button onclick="processUTMtoDD()">Convert & Download</button>
+  <div class="result" id="utm_to_dd_status"></div>
+</div>
+
+<div class="converter">
+  <h2>Batch Convert Decimal Degrees to UTM (CSV)</h2>
+  <p>Upload a CSV with columns: Latitude, Longitude</p>
+  <input type="file" id="dd_to_utm_file" accept=".csv" />
+  <button onclick="processDDtoUTM()">Convert & Download</button>
+  <div class="result" id="dd_to_utm_status"></div>
+</div>
+
+<div class="converter">
+  <h2>Batch Convert ARC1960 to ITRF (CSV)</h2>
+  <p>Upload a CSV with columns: Easting, Northing</p>
+  <input type="file" id="arc_to_itrf_file" accept=".csv" />
+  <button onclick="processARCtoITRF()">Convert & Download</button>
+  <div class="result" id="arc_to_itrf_status"></div>
+</div>
+
+<script>
+  function parseCSVLines(content) {
+    return content.trim().split('\n').map(line => line.split(','));
+  }
+
+  function downloadCSV(data, filename) {
+    const blob = new Blob([data.join('\n')], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function processARCtoITRF() {
+    const input = document.getElementById('arc_to_itrf_file');
+    const status = document.getElementById('arc_to_itrf_status');
+    if (!input.files.length) return status.innerText = "Please upload a CSV.";
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const lines = parseCSVLines(e.target.result);
+      const header = lines[0];
+      const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
+      const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
+      if (idxE === -1 || idxN === -1) return status.innerText = "Missing columns.";
+
+      const result = [header.join(',')];
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i];
+        row[idxE] = (parseFloat(row[idxE]) - -83.86).toFixed(3);
+        row[idxN] = (parseFloat(row[idxN]) - 296.894).toFixed(3);
+        result.push(row.join(','));
+      }
+      downloadCSV(result, "arc_to_itrf_converted.csv");
+      status.innerText = "Download complete.";
+    };
+    reader.readAsText(input.files[0]);
+  }
+
+  function processUTMtoDD() {
+    const input = document.getElementById('utm_to_dd_file');
+    const status = document.getElementById('utm_to_dd_status');
+    if (!input.files.length) return status.innerText = "Please upload a CSV.";
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const lines = parseCSVLines(e.target.result);
+      const header = lines[0];
+      const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
+      const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
+      const idxZ = header.findIndex(h => h.toLowerCase().includes("zone"));
+      const idxH = header.findIndex(h => h.toLowerCase().includes("hemi"));
+      if ([idxE, idxN, idxZ, idxH].includes(-1)) return status.innerText = "Missing columns.";
+
+      const result = ["Latitude,Longitude"];
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i];
+        const e = parseFloat(row[idxE]) - 500000;
+        const n = row[idxH].toUpperCase() === 'S' ? parseFloat(row[idxN]) - 10000000 : parseFloat(row[idxN]);
+        const zone = parseInt(row[idxZ]);
+        const a = 6378137.0, f = 1/298.257223563, k0 = 0.9996, e2 = f * (2 - f);
+        const m = n / k0;
+        const mu = m / (a * (1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256));
+        const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+        const phi1 = mu + (3*e1/2 - 27*e1**3/32)*Math.sin(2*mu)
+          + (21*e1**2/16 - 55*e1**4/32)*Math.sin(4*mu) + (151*e1**3/96)*Math.sin(6*mu);
+        const n1 = a / Math.sqrt(1 - e2 * Math.sin(phi1)**2);
+        const r1 = a * (1 - e2) / Math.pow(1 - e2 * Math.sin(phi1)**2, 1.5);
+        const d = e / (n1 * k0);
+        const lat = phi1 - (n1 * Math.tan(phi1) / r1) * (d*d/2);
+        const lon = ((zone - 1) * 6 - 180 + 3) * Math.PI/180 + (d - d**3/6) / Math.cos(phi1);
+        result.push(`${(lat*180/Math.PI).toFixed(6)},${(lon*180/Math.PI).toFixed(6)}`);
+      }
+      downloadCSV(result, "utm_to_dd_converted.csv");
+      status.innerText = "Download complete.";
+    };
+    reader.readAsText(input.files[0]);
+  }
+
+  function processDDtoUTM() {
+    const input = document.getElementById('dd_to_utm_file');
+    const status = document.getElementById('dd_to_utm_status');
+    if (!input.files.length) return status.innerText = "Please upload a CSV.";
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const lines = parseCSVLines(e.target.result);
+      const header = lines[0];
+      const idxLat = header.findIndex(h => h.toLowerCase().includes("lat"));
+      const idxLon = header.findIndex(h => h.toLowerCase().includes("lon"));
+      if (idxLat === -1 || idxLon === -1) return status.innerText = "Missing columns.";
+
+      const result = ["Zone,Hemisphere,Easting,Northing"];
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i];
+        const lat = parseFloat(row[idxLat]);
+        const lon = parseFloat(row[idxLon]);
+        const a = 6378137.0, f = 1/298.257223563, k0 = 0.9996, e = Math.sqrt(f * (2 - f));
+        const zone = Math.floor((lon + 180) / 6) + 1;
+        const lambda0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+        const phi = lat * Math.PI / 180;
+        const lambda = lon * Math.PI / 180;
+        const n = a / Math.sqrt(1 - e*e*Math.sin(phi)**2);
+        const t = Math.tan(phi)**2;
+        const c = (e*e)/(1 - e*e) * Math.cos(phi)**2;
+        const A = Math.cos(phi) * (lambda - lambda0);
+        const m = a * ((1 - e*e/4 - 3*e**4/64 - 5*e**6/256) * phi
+                    - (3*e*e/8 + 3*e**4/32 + 45*e**6/1024) * Math.sin(2*phi)
+                    + (15*e**4/256 + 45*e**6/1024) * Math.sin(4*phi)
+                    - (35*e**6/3072) * Math.sin(6*phi));
+        const easting = 500000 + k0 * n * (A + (1 - t + c)*Math.pow(A, 3)/6);
+        const northing = k0 * (m + n * Math.tan(phi) * (A*A/2));
+        const hemi = lat < 0 ? "S" : "N";
+        const northingAdj = lat < 0 ? northing + 10000000 : northing;
+        result.push(`${zone},${hemi},${easting.toFixed(3)},${northingAdj.toFixed(3)}`);
+      }
+      downloadCSV(result, "dd_to_utm_converted.csv");
+      status.innerText = "Download complete.";
+    };
+    reader.readAsText(input.files[0]);
+  }
+</script>
+</div>
+</body>
+</html>
