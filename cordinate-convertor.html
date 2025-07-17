@@ -241,13 +241,7 @@
   }
 </script>
 
-<div class="converter">
-  <h2>Batch Convert PNEZD CSV (ITRF to ARC1960)</h2>
-  <p>Upload a CSV file with PNEZD columns: PointID, Northing, Easting, Elevation, Description</p>
-  <input type="file" id="pnezd_file" accept=".csv" />
-  <button onclick="processPNEZD()">Convert & Download</button>
-  <div class="result" id="pnezd_status"></div>
-</div>
+
 <script>
   function processPNEZD() {
     const fileInput = document.getElementById('pnezd_file');
