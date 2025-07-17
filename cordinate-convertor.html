@@ -26,7 +26,7 @@
       padding: 20px;
     }
     .converter {
-      background: white;
+      background: rgb(98, 127, 160);
       padding: 25px;
       margin-bottom: 30px;
       border-radius: 12px;
@@ -64,17 +64,17 @@
       background: #5a00a3;
     }
     .result {
-      margin-top: 15px;
+      margin-top: 17px;
       font-weight: bold;
-      color: #333;
+      color: #48ff00;
     }
   </style>
 </head>
 <body>
-  <header><br/>Coordinate Converter Tool</header>
+  <header>Coordinate Converter Tool</header>
   <div class="container">
     
-  <h1>Coordinate Converter</h1>
+ 
 
   <div class="converter">
     <h2>Decimal Degrees to UTM</h2>
@@ -82,10 +82,10 @@
     <label>Longitude:</label><input type="number" id="dd_lon" step="any">
     <button onclick="ddToUTM()">Convert</button>
     <div class="result" id="dd_to_utm_result">
-    <p>Upload a CSV with Latitude,Longitude columns:</p>
-    <input type="file" id="dd_to_utm_file" accept=".csv" />
-    <button onclick="processDDtoUTM()">Convert & Download</button>
-    <div class="result" id="dd_to_utm_status"></div>
+      <p>Upload a CSV with Latitude,Longitude columns:</p>
+      <input type="file" id="dd_to_utm_file" accept=".csv" />
+      <button onclick="processDDtoUTM()">Convert & Download</button>
+      <div class="result" id="dd_to_utm_status"></div>
     </div>
   </div>
 
