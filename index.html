@@ -601,17 +601,15 @@ if ('serviceWorker' in navigator) {
 </script>
 <script>
   function copyText(element) {
-    const text = element.textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      // Optional: show feedback
-      element.style.backgroundColor = "#d4ffd4"; // light green feedback
-      setTimeout(() => {
-        element.style.backgroundColor = ""; // reset after short delay
-      }, 500);
-    }).catch(err => {
-      console.error("Failed to copy text: ", err);
-    });
-  }
+  const original = element.textContent;
+  navigator.clipboard.writeText(original).then(() => {
+    element.textContent = 'Copied!';
+    setTimeout(() => {
+      element.textContent = original;
+    }, 1000);
+  });
+}
+
 </script>
 </div>
 <footer>
