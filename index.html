@@ -466,7 +466,26 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<div class="converter">
+<h2>Locate in Google maps</h2>
+    <form onsubmit="searchLocation(); return false;">
+        <label for="lat">Latitude:</label>
+        <input type="text" id="lat" name="lat" required><br><br>
 
+        <label for="lng">Longitude:</label>
+        <input type="text" id="lng" name="lng" required><br><br>
+
+        <button type="submit">Search in Google Maps</button>
+    </form>
+</div>
+    <script>
+        function searchLocation() {
+            const lat = document.getElementById('lat').value;
+            const lng = document.getElementById('lng').value;
+            const url = `https://www.google.com/maps?q=${lat},${lng}`;
+            window.open(url, '_blank');
+        }
+    </script>
 </div>
 <footer>
     Created by <strong>Alvin Shedrack</strong> © 2025
