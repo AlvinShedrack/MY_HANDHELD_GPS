@@ -421,25 +421,27 @@ mapBtn.addEventListener('click', () => {
 </div>
 <script>
   function convertITRFtoARC() {
-    const input = document.getElementById('arc_to_itrf_file');
-    const status = document.getElementById('arc_to_itrf_status');
-    if (!input.files.length) return status.innerText = "Please upload a CSV.";
-    const itrfE = parseFloat(document.getElementById('itrf_easting').value);
-    const itrfN = parseFloat(document.getElementById('itrf_northing').value);
-    const deltaE = -83.86;
-    const deltaN = 296.894;
+  const itrfE = parseFloat(document.getElementById('itrf_easting').value);
+  const itrfN = parseFloat(document.getElementById('itrf_northing').value);
 
-    const arcE = itrfE + deltaE;
-    const arcN = itrfN + deltaN;
-
-    document.getElementById('itrf_to_arc_result').innerHTML = `
-    <div class="result-box">
-        <p><strong>ARC1960 Easting:</strong> <span class="copyable" onclick="copyText(this)">${arcE.toFixed(3)}</span></p>
-        <p><strong>ARC1960 Northing:</strong> <span class="copyable" onclick="copyText(this)">${arcN.toFixed(3)}</span></p>
-
-    </div>`;
-
+  if (isNaN(itrfE) || isNaN(itrfN)) {
+    document.getElementById('itrf_to_arc_result').innerHTML = "<p>Please enter valid Easting and Northing values.</p>";
+    return;
   }
+
+  const deltaE = -83.86;
+  const deltaN = 296.894;
+
+  const arcE = itrfE + deltaE;
+  const arcN = itrfN + deltaN;
+
+  document.getElementById('itrf_to_arc_result').innerHTML = `
+    <div class="result-box">
+      <p><strong>ARC1960 Easting:</strong> <span class="copyable" onclick="copyText(this)">${arcE.toFixed(3)}</span></p>
+      <p><strong>ARC1960 Northing:</strong> <span class="copyable" onclick="copyText(this)">${arcN.toFixed(3)}</span></p>
+    </div>`;
+}
+
 </script>
 
 
