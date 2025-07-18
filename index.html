@@ -56,6 +56,14 @@
       border-radius: 6px;
       font-size: 1rem;
     }
+    .copyable {
+    cursor: pointer;
+    user-select: text;
+    }
+    .copyable:hover {
+    text-decoration: underline dotted;
+    }
+
     .result-box {
     padding: 10px;
     border: 1px solid #007bff;
@@ -232,9 +240,9 @@ setTimeout(() => {
 
       document.getElementById('dd_to_utm_result').innerHTML = `
         <div class="result-box">
-          <p><strong>Zone:</strong> ${zone}${hemisphere}</p>
-          <p><strong>Easting:</strong> ${easting.toFixed(3)}</p>
-          <p><strong>Northing:</strong> ${northingAdjusted.toFixed(3)}</p>
+          <p><strong>Zone:</strong><span class="copyable" onclick="copyText(this)"> ${zone}${hemisphere}</p>
+          <p><strong>Easting:</strong><span class="copyable" onclick="copyText(this)"> ${easting.toFixed(3)}</p>
+          <p><strong>Northing:</strong><span class="copyable" onclick="copyText(this)"> ${northingAdjusted.toFixed(3)}</p>
         </div>`;
 
     }
@@ -291,8 +299,8 @@ const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 document.getElementById('utm_to_dd_result').innerHTML = `
   <div class="result-box">
-    <p><strong>Latitude:</strong> ${latDeg}</p>
-    <p><strong>Longitude:</strong> ${lonDeg}</p>
+    <p><strong>Latitude:</strong><span class="copyable" onclick="copyText(this)"> ${latDeg}</p>
+    <p><strong>Longitude:</strong><span class="copyable" onclick="copyText(this)"> ${lonDeg}</p>
     <button id="utmMapBtn" style="
       margin-top:10px;
       background-color:#4B0082;
@@ -368,8 +376,8 @@ mapBtn.addEventListener('click', () => {
 
     document.getElementById('arc_to_itrf_result').innerHTML = `
     <div class="result-box">
-        <p><strong>ITRF Easting:</strong> ${itrfE.toFixed(3)}</p>
-        <p><strong>ITRF Northing:</strong> ${itrfN.toFixed(3)}</p>
+        <p><strong>ITRF Easting:</strong><span class="copyable" onclick="copyText(this)"> ${itrfE.toFixed(3)}</p>
+        <p><strong>ITRF Northing:</strong><span class="copyable" onclick="copyText(this)"> ${itrfN.toFixed(3)}</p>
     </div>`;
 
   }
@@ -399,8 +407,8 @@ mapBtn.addEventListener('click', () => {
 
     document.getElementById('itrf_to_arc_result').innerHTML = `
     <div class="result-box">
-        <p><strong>ARC1960 Easting:</strong> ${arcE.toFixed(3)}</p>
-        <p><strong>ARC1960 Northing:</strong> ${arcN.toFixed(3)}</p>
+        <p><strong>ARC1960 Easting:</strong><span class="copyable" onclick="copyText(this)"> ${arcE.toFixed(3)}</p>
+        <p><strong>ARC1960 Northing:</strong><span class="copyable" onclick="copyText(this)"> ${arcN.toFixed(3)}</p>
     </div>`;
 
   }
@@ -591,7 +599,20 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
+<script>
+  function copyText(element) {
+    const text = element.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      // Optional: show feedback
+      element.style.backgroundColor = "#d4ffd4"; // light green feedback
+      setTimeout(() => {
+        element.style.backgroundColor = ""; // reset after short delay
+      }, 500);
+    }).catch(err => {
+      console.error("Failed to copy text: ", err);
+    });
+  }
+</script>
 </div>
 <footer>
     Created by <strong>Alvin Shedrack</strong> © 2025
