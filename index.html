@@ -141,7 +141,7 @@
   <h1>Coordinate Converter</h1>
 
   <div class="converter">
-    <h2>Decimal Degrees to UTM</h2>
+    <h2>Degrees to UTM(ITRF)</h2>
     <label>Latitude:</label><input type="number" id="dd_lat" step="any">
     <label>Longitude:</label><input type="number" id="dd_lon" step="any">
     <button onclick="ddToUTM()">Convert</button>
@@ -202,9 +202,9 @@ setTimeout(() => {
 
 
   <div class="converter">
-    <h2>UTM to Decimal Degrees</h2>
-    <label>Easting:</label><input type="number" id="utm_easting" step="any">
-    <label>Northing:</label><input type="number" id="utm_northing" step="any">
+    <h2>UTM(ITRF) to Degrees</h2>
+    <label>ITRF Easting:</label><input type="number" id="utm_easting" step="any">
+    <label>ITRF Northing:</label><input type="number" id="utm_northing" step="any">
     <label>Zone:</label>
     <select id="utm_zone">
       <option value="36">36</option>
@@ -265,8 +265,8 @@ setTimeout(() => {
       document.getElementById('dd_to_utm_result').innerHTML = `
         <div class="result-box">
           <p><strong>Zone:</strong><span class="copyable" onclick="copyText(this)"> ${zone}${hemisphere}</p>
-          <p><strong>Easting:</strong><span class="copyable" onclick="copyText(this)"> ${easting.toFixed(3)}</p>
-          <p><strong>Northing:</strong><span class="copyable" onclick="copyText(this)"> ${northingAdjusted.toFixed(3)}</p>
+          <p><strong>ITRF Easting:</strong><span class="copyable" onclick="copyText(this)"> ${easting.toFixed(3)}</p>
+          <p><strong>ITRF Northing:</strong><span class="copyable" onclick="copyText(this)"> ${northingAdjusted.toFixed(3)}</p>
         </div>`;
 
     }
