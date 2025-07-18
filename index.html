@@ -86,6 +86,15 @@
     button:hover {
       background: #5a00a3;
     }
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+}
+
     .result {
       margin-top: 15px;
       font-weight: bold;
@@ -104,6 +113,7 @@
     <label>Latitude:</label><input type="number" id="dd_lat" step="any">
     <label>Longitude:</label><input type="number" id="dd_lon" step="any">
     <button onclick="ddToUTM()">Convert</button>
+    <button type="button" onclick="searchLocation()">View in Google Maps</button>
     <div class="result" id="dd_to_utm_result"></div>
       <p>Upload a CSV with Latitude,Longitude columns:</p>
       <input type="file" id="dd_to_utm_file" accept=".csv" />
@@ -111,13 +121,31 @@
       <div class="result" id="dd_to_utm_status"></div>
     
   </div>
+  <script>
+      function searchLocation() {
+          const lat = document.getElementById('dd_lat').value;
+          const lng = document.getElementById('dd_lon').value;
+          const url = `https://www.google.com/maps?q=${dd_lat},${dd_lon}`;
+          window.open(url, '_blank');
+      }
+  </script>
 
   <div class="converter">
     <h2>UTM to Decimal Degrees</h2>
     <label>Easting:</label><input type="number" id="utm_easting" step="any">
     <label>Northing:</label><input type="number" id="utm_northing" step="any">
-    <label>Zone:</label><input type="number" id="utm_zone">
-    <label>Hemisphere (N/S):</label><input type="text" id="utm_hemisphere">
+    <label>Zone:</label>
+    <select id="utm_zone">
+      <option value="36">36</option>
+      <option value="35">35</option>
+    </select>
+
+    <label>Hemisphere (N/S):</label>
+    <select id="utm_hemisphere">
+      <option value="N">N</option>
+      <option value="S">S</option>
+    </select>
+
     <button onclick="utmToDD()">Convert</button>
     <div class="result" id="utm_to_dd_result"></div>
       <p>Upload a CSV with Easting,Northing,Zone,Hemisphere columns:</p>
@@ -172,51 +200,66 @@
 
     }
 
-    function utmToDD() {
-      const easting = parseFloat(document.getElementById('utm_easting').value);
-      const northing = parseFloat(document.getElementById('utm_northing').value);
-      const zone = parseInt(document.getElementById('utm_zone').value);
-      const hemi = document.getElementById('utm_hemisphere').value.toUpperCase();
+   function utmToDD() {
+  const easting = parseFloat(document.getElementById('utm_easting').value);
+  const northing = parseFloat(document.getElementById('utm_northing').value);
+  const zone = parseInt(document.getElementById('utm_zone').value);
+  const hemi = document.getElementById('utm_hemisphere').value.toUpperCase();
 
-      const a = 6378137.0;
-      const f = 1 / 298.257223563;
-      const k0 = 0.9996;
-      const e = Math.sqrt(f * (2 - f));
-      const e1sq = e * e / (1 - e * e);
+  if (isNaN(easting) || isNaN(northing) || isNaN(zone) || (hemi !== 'N' && hemi !== 'S')) {
+    alert("Please enter valid UTM coordinates and hemisphere (N or S).");
+    return;
+  }
 
-      const x = easting - 500000;
-      const y = hemi === 'S' ? northing - 10000000 : northing;
+  const a = 6378137.0;
+  const f = 1 / 298.257223563;
+  const k0 = 0.9996;
+  const e = Math.sqrt(f * (2 - f));
+  const e1sq = e * e / (1 - e * e);
 
-      const lambda0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+  const x = easting - 500000;
+  const y = hemi === 'S' ? northing - 10000000 : northing;
 
-      const m = y / k0;
-      const mu = m / (a * (1 - Math.pow(e, 2)/4 - 3*Math.pow(e, 4)/64 - 5*Math.pow(e, 6)/256));
+  const lambda0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
 
-      const e1 = (1 - Math.sqrt(1 - Math.pow(e,2))) / (1 + Math.sqrt(1 - Math.pow(e,2)));
-      const j1 = (3*e1/2 - 27*Math.pow(e1,3)/32);
-      const j2 = (21*Math.pow(e1,2)/16 - 55*Math.pow(e1,4)/32);
-      const j3 = (151*Math.pow(e1,3)/96);
-      const j4 = (1097*Math.pow(e1,4)/512);
-      const fp = mu + j1*Math.sin(2*mu) + j2*Math.sin(4*mu) + j3*Math.sin(6*mu) + j4*Math.sin(8*mu);
+  const m = y / k0;
+  const mu = m / (a * (1 - Math.pow(e, 2)/4 - 3*Math.pow(e, 4)/64 - 5*Math.pow(e, 6)/256));
 
-      const sinfp = Math.sin(fp);
-      const cosfp = Math.cos(fp);
-      const tanfp = Math.tan(fp);
+  const e1 = (1 - Math.sqrt(1 - Math.pow(e,2))) / (1 + Math.sqrt(1 - Math.pow(e,2)));
+  const j1 = (3*e1/2 - 27*Math.pow(e1,3)/32);
+  const j2 = (21*Math.pow(e1,2)/16 - 55*Math.pow(e1,4)/32);
+  const j3 = (151*Math.pow(e1,3)/96);
+  const j4 = (1097*Math.pow(e1,4)/512);
+  const fp = mu + j1*Math.sin(2*mu) + j2*Math.sin(4*mu) + j3*Math.sin(6*mu) + j4*Math.sin(8*mu);
 
-      const n = a / Math.sqrt(1 - Math.pow(e * sinfp, 2));
-      const r = a * (1 - Math.pow(e, 2)) / Math.pow(1 - Math.pow(e * sinfp, 2), 1.5);
-      const d = x / (n * k0);
+  const sinfp = Math.sin(fp);
+  const cosfp = Math.cos(fp);
+  const tanfp = Math.tan(fp);
 
-      const lat = fp - (n * tanfp / r) * (d*d/2 - (5 + 3*tanfp*tanfp + e1sq*cosfp*cosfp - 9*e1sq*tanfp*tanfp) * Math.pow(d,4)/24);
-      const lon = lambda0 + (d - (1 + 2*tanfp*tanfp + e1sq*cosfp*cosfp) * Math.pow(d,3)/6) / cosfp;
+  const n = a / Math.sqrt(1 - Math.pow(e * sinfp, 2));
+  const r = a * (1 - Math.pow(e, 2)) / Math.pow(1 - Math.pow(e * sinfp, 2), 1.5);
+  const d = x / (n * k0);
 
-     document.getElementById('utm_to_dd_result').innerHTML = `
+  const lat = fp - (n * tanfp / r) * (d*d/2 - (5 + 3*tanfp*tanfp + e1sq*cosfp*cosfp - 9*e1sq*tanfp*tanfp) * Math.pow(d,4)/24);
+  const lon = lambda0 + (d - (1 + 2*tanfp*tanfp + e1sq*cosfp*cosfp) * Math.pow(d,3)/6) / cosfp;
+
+  const latDeg = (lat * 180 / Math.PI).toFixed(6);
+  const lonDeg = (lon * 180 / Math.PI).toFixed(6);
+
+  const mapUrl = `https://www.google.com/maps?q=${latDeg},${lonDeg}`;
+
+  // Render result with a visible button
+  document.getElementById('utm_to_dd_result').innerHTML = `
     <div class="result-box">
-        <p><strong>Latitude:</strong> ${(lat * 180 / Math.PI).toFixed(6)}</p>
-        <p><strong>Longitude:</strong> ${(lon * 180 / Math.PI).toFixed(6)}</p>
-    </div>`;
+      <p><strong>Latitude:</strong> ${latDeg}</p>
+      <p><strong>Longitude:</strong> ${lonDeg}</p>
+      <button onclick="window.open('${mapUrl}', '_blank')" style="margin-top:10px; background-color:#4B0082; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">
+        View in Google Maps
+      </button>
+    </div>
+  `;
+}
 
-    }
   </script>
 
   
@@ -466,26 +509,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<div class="converter">
-<h2>Locate in Google maps</h2>
-    <form onsubmit="searchLocation(); return false;">
-        <label for="lat">Latitude:</label>
-        <input type="text" id="lat" name="lat" required><br><br>
 
-        <label for="lng">Longitude:</label>
-        <input type="text" id="lng" name="lng" required><br><br>
-
-        <button type="submit">Search in Google Maps</button>
-    </form>
-</div>
-    <script>
-        function searchLocation() {
-            const lat = document.getElementById('lat').value;
-            const lng = document.getElementById('lng').value;
-            const url = `https://www.google.com/maps?q=${lat},${lng}`;
-            window.open(url, '_blank');
-        }
-    </script>
 </div>
 <footer>
     Created by <strong>Alvin Shedrack</strong> © 2025
