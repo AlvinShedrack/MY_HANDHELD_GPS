@@ -421,6 +421,7 @@ mapBtn.addEventListener('click', () => {
 </div>
 <script>
   function convertITRFtoARC() {
+        if (!input.files.length) return status.innerText = "Please upload a CSV.";
     const itrfE = parseFloat(document.getElementById('itrf_easting').value);
     const itrfN = parseFloat(document.getElementById('itrf_northing').value);
     const deltaE = -83.86;
