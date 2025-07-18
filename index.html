@@ -93,12 +93,12 @@
     <label>Latitude:</label><input type="number" id="dd_lat" step="any">
     <label>Longitude:</label><input type="number" id="dd_lon" step="any">
     <button onclick="ddToUTM()">Convert</button>
-    <div class="result" id="dd_to_utm_result">
-    <p>Upload a CSV with Latitude,Longitude columns:</p>
-    <input type="file" id="dd_to_utm_file" accept=".csv" />
-    <button onclick="processDDtoUTM()">Convert & Download</button>
-    <div class="result" id="dd_to_utm_status"></div>
-    </div>
+    <div class="result" id="dd_to_utm_result"></div>
+      <p>Upload a CSV with Latitude,Longitude columns:</p>
+      <input type="file" id="dd_to_utm_file" accept=".csv" />
+      <button onclick="processDDtoUTM()">Convert & Download</button>
+      <div class="result" id="dd_to_utm_status"></div>
+    
   </div>
 
   <div class="converter">
@@ -108,12 +108,12 @@
     <label>Zone:</label><input type="number" id="utm_zone">
     <label>Hemisphere (N/S):</label><input type="text" id="utm_hemisphere">
     <button onclick="utmToDD()">Convert</button>
-    <div class="result" id="utm_to_dd_result">
-    <p>Upload a CSV with Easting,Northing,Zone,Hemisphere columns:</p>
-    <input type="file" id="utm_to_dd_file" accept=".csv" />
-    <button onclick="processUTMtoDD()">Convert & Download</button>
-    <div class="result" id="utm_to_dd_status"></div>
-    </div>
+    <div class="result" id="utm_to_dd_result"></div>
+      <p>Upload a CSV with Easting,Northing,Zone,Hemisphere columns:</p>
+      <input type="file" id="utm_to_dd_file" accept=".csv" />
+      <button onclick="processUTMtoDD()">Convert & Download</button>
+      <div class="result" id="utm_to_dd_status"></div>
+    
   </div>
 
   <script>
@@ -199,8 +199,12 @@
       const lat = fp - (n * tanfp / r) * (d*d/2 - (5 + 3*tanfp*tanfp + e1sq*cosfp*cosfp - 9*e1sq*tanfp*tanfp) * Math.pow(d,4)/24);
       const lon = lambda0 + (d - (1 + 2*tanfp*tanfp + e1sq*cosfp*cosfp) * Math.pow(d,3)/6) / cosfp;
 
-      document.getElementById('utm_to_dd_result').innerText =
-        `Latitude: ${(lat*180/Math.PI).toFixed(6)}, Longitude: ${(lon*180/Math.PI).toFixed(6)}`;
+     document.getElementById('utm_to_dd_result').innerHTML = `
+    <div class="result-box">
+        <p><strong>Latitude:</strong> ${(lat * 180 / Math.PI).toFixed(6)}</p>
+        <p><strong>Longitude:</strong> ${(lon * 180 / Math.PI).toFixed(6)}</p>
+    </div>`;
+
     }
   </script>
 
@@ -226,8 +230,12 @@
     const itrfE = arcE - deltaE;
     const itrfN = arcN - deltaN;
 
-    document.getElementById('arc_to_itrf_result').innerText =
-      `ITRF Easting: ${itrfE.toFixed(3)}, Northing: ${itrfN.toFixed(3)}`;
+    document.getElementById('arc_to_itrf_result').innerHTML = `
+    <div class="result-box">
+        <p><strong>ITRF Easting:</strong> ${itrfE.toFixed(3)}</p>
+        <p><strong>ITRF Northing:</strong> ${itrfN.toFixed(3)}</p>
+    </div>`;
+
   }
 </script>
 
@@ -236,12 +244,12 @@
   <label>ITRF Easting (m):</label><input type="number" id="itrf_easting" step="any">
   <label>ITRF Northing (m):</label><input type="number" id="itrf_northing" step="any">
   <button onclick="convertITRFtoARC()">Convert</button>
-  <div class="result" id="itrf_to_arc_result">
+  <div class="result" id="itrf_to_arc_result"></div>
     <p>Upload a CSV with Easting,Northing columns:</p>
     <input type="file" id="itrf_to_arc_file" accept=".csv" />
     <button onclick="processITRFtoARC()">Convert & Download</button>
     <div class="result" id="itrf_to_arc_status"></div>
-    </div>
+    
 </div>
 <script>
   function convertITRFtoARC() {
@@ -253,8 +261,12 @@
     const arcE = itrfE + deltaE;
     const arcN = itrfN + deltaN;
 
-    document.getElementById('itrf_to_arc_result').innerText =
-      `ARC1960 Easting: ${arcE.toFixed(3)}, Northing: ${arcN.toFixed(3)}`;
+    document.getElementById('itrf_to_arc_result').innerHTML = `
+    <div class="result-box">
+        <p><strong>ARC1960 Easting:</strong> ${arcE.toFixed(3)}</p>
+        <p><strong>ARC1960 Northing:</strong> ${arcN.toFixed(3)}</p>
+    </div>`;
+
   }
 </script>
 
