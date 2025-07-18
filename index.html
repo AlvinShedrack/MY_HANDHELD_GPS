@@ -536,6 +536,67 @@ mapBtn.addEventListener('click', () => {
     };
     reader.readAsText(input.files[0]);
   }
+  <script>
+  function processITRFtoARC() {
+    const input = document.getElementById('itrf_to_arc_file');
+    const status = document.getElementById('itrf_to_arc_status');
+
+    if (!input.files.length) {
+      status.innerText = "Please upload a CSV.";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const lines = parseCSVLines(e.target.result);
+      const header = lines[0];
+      const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
+      const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
+
+      if (idxE === -1 || idxN === -1) {
+        status.innerText = "Missing 'Easting' or 'Northing' column.";
+        return;
+      }
+
+      const deltaE = -83.86;
+      const deltaN = 296.894;
+
+      const result = [header.join(',')];
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i];
+        const origE = parseFloat(row[idxE]);
+        const origN = parseFloat(row[idxN]);
+
+        if (isNaN(origE) || isNaN(origN)) continue;
+
+        row[idxE] = (origE + deltaE).toFixed(3);
+        row[idxN] = (origN + deltaN).toFixed(3);
+        result.push(row.join(','));
+      }
+
+      downloadCSV(result, "itrf_to_arc_converted.csv");
+      status.innerText = "Conversion complete. File downloaded.";
+    };
+
+    reader.readAsText(input.files[0]);
+  }
+
+  function parseCSVLines(text) {
+    const lines = text.trim().split('\n');
+    return lines.map(line => line.split(','));
+  }
+
+  function downloadCSV(rows, filename) {
+    const csvContent = rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const link = document.createElement("a");
+
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+</script>
 
   function processUTMtoDD() {
     const input = document.getElementById('utm_to_dd_file');
