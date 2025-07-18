@@ -136,29 +136,35 @@ function searchLocation() {
     mapBtn.textContent = 'Loading...';
     mapBtn.disabled = true;
 
-    const geoUrl = `geo:${lat},${lng}?q=${lat},${lng}`;
-    const webUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    // Try geo: link for Android, fallback to web URL otherwise
-      if (isMobile && /Android/i.test(navigator.userAgent)) {
-        window.location.href = geoUrl;
-      } else {
-        window.location.href = webUrl;
-      }
-    // Delay to allow DOM to update
-    setTimeout(() => {
-      if (isMobile) {
-        window.location.href = geoUrl;
-      } else {
-        window.open(webUrl, '_blank');
-      }
+const geoUrl = `geo:${lat},${lng}?q=${lat},${lng}`;
+const webUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isAndroid = /Android/i.test(navigator.userAgent);
 
-      // Optional reset
-      setTimeout(() => {
-        mapBtn.textContent = 'View in Google Maps';
-        mapBtn.disabled = false;
-      }, 3000);
-    }, 300); // Delay to show loading
+// Optional loading UI update
+mapBtn.textContent = 'Opening...';
+mapBtn.disabled = true;
+
+setTimeout(() => {
+  if (isMobile && isAndroid) {
+    // Use window.open to avoid replacing the current page
+    try {
+      window.open(geoUrl);
+    } catch {
+      window.open(webUrl, '_blank');
+    }
+  } else {
+    // Always open the web URL in Safari or non-Android devices
+    window.open(webUrl, '_blank');
+  }
+
+  // Reset the button after a few seconds
+  setTimeout(() => {
+    mapBtn.textContent = 'View in Google Maps';
+    mapBtn.disabled = false;
+  }, 3000);
+}, 300); // Optional delay for UI feedback
+
   }
 </script>
 
@@ -302,10 +308,14 @@ document.getElementById('utm_to_dd_result').innerHTML = `
 // Safe map open logic for Safari and others
 document.getElementById('utmMapBtn').addEventListener('click', function () {
   if (isMobile && /Android/i.test(navigator.userAgent)) {
-    // Android usually supports geo: URIs
-    window.location.href = geoUrl;
+    // Attempt to open in native Maps app
+    try {
+      window.open(geoUrl);
+    } catch (e) {
+      window.open(mapUrl, '_blank');
+    }
   } else {
-    // iOS Safari, desktop browsers fallback
+    // For Safari, iOS, and desktop – always use web URL
     window.open(mapUrl, '_blank');
   }
 });
