@@ -113,7 +113,7 @@
     <label>Latitude:</label><input type="number" id="dd_lat" step="any">
     <label>Longitude:</label><input type="number" id="dd_lon" step="any">
     <button onclick="ddToUTM()">Convert</button>
-    <button type="button" onclick="searchLocation()">View in Google Maps</button>
+    <button id="mapBtn" type="button" onclick="searchLocation()">View in Google Maps</button>
     <div class="result" id="dd_to_utm_result"></div>
       <p>Upload a CSV with Latitude,Longitude columns:</p>
       <input type="file" id="dd_to_utm_file" accept=".csv" />
@@ -121,14 +121,42 @@
       <div class="result" id="dd_to_utm_status"></div>
     
   </div>
-  <script>
-      function searchLocation() {
-          const lat = document.getElementById('dd_lat').value;
-          const lng = document.getElementById('dd_lon').value;
-          const url = `https://www.google.com/maps?q=${dd_lat},${dd_lon}`;
-          window.open(url, '_blank');
+<script>
+function searchLocation() {
+    const lat = document.getElementById('dd_lat').value;
+    const lng = document.getElementById('dd_lon').value;
+    const mapBtn = document.getElementById('mapBtn');
+
+    if (!lat || !lng) {
+      alert("Please enter both latitude and longitude.");
+      return;
+    }
+
+    // Show loading text and disable button
+    mapBtn.textContent = 'Loading...';
+    mapBtn.disabled = true;
+
+    const geoUrl = `geo:${lat},${lng}?q=${lat},${lng}`;
+    const webUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // Delay to allow DOM to update
+    setTimeout(() => {
+      if (isMobile) {
+        window.location.href = geoUrl;
+      } else {
+        window.open(webUrl, '_blank');
       }
-  </script>
+
+      // Optional reset
+      setTimeout(() => {
+        mapBtn.textContent = 'View in Google Maps';
+        mapBtn.disabled = false;
+      }, 3000);
+    }, 300); // Delay to show loading
+  }
+</script>
+
 
   <div class="converter">
     <h2>UTM to Decimal Degrees</h2>
@@ -246,18 +274,49 @@
   const latDeg = (lat * 180 / Math.PI).toFixed(6);
   const lonDeg = (lon * 180 / Math.PI).toFixed(6);
 
-  const mapUrl = `https://www.google.com/maps?q=${latDeg},${lonDeg}`;
+const geoUrl = `geo:${latDeg},${lonDeg}?q=${latDeg},${lonDeg}`;
+const mapUrl = `https://www.google.com/maps?q=${latDeg},${lonDeg}`;
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // Render result with a visible button
-  document.getElementById('utm_to_dd_result').innerHTML = `
-    <div class="result-box">
-      <p><strong>Latitude:</strong> ${latDeg}</p>
-      <p><strong>Longitude:</strong> ${lonDeg}</p>
-      <button onclick="window.open('${mapUrl}', '_blank')" style="margin-top:10px; background-color:#4B0082; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">
-        View in Google Maps
-      </button>
-    </div>
-  `;
+// Use unique ID for this context
+document.getElementById('utm_to_dd_result').innerHTML = `
+  <div class="result-box">
+    <p><strong>Latitude:</strong> ${latDeg}</p>
+    <p><strong>Longitude:</strong> ${lonDeg}</p>
+    <button id="utmMapBtn" style="
+      margin-top:10px;
+      background-color:#4B0082;
+      color:white;
+      border:none;
+      padding:10px 20px;
+      border-radius:5px;
+      cursor:pointer;">
+      View in Google Maps
+    </button>
+  </div>
+`;
+
+const mapBtn = document.getElementById('utmMapBtn');
+mapBtn.addEventListener('click', () => {
+  mapBtn.textContent = 'Loading...';
+  mapBtn.disabled = true;
+
+  const redirectUrl = isMobile ? geoUrl : mapUrl;
+
+  setTimeout(() => {
+    if (isMobile) {
+      window.location.href = redirectUrl;
+    } else {
+      window.open(redirectUrl, '_blank');
+    }
+
+    setTimeout(() => {
+      mapBtn.textContent = 'View in Google Maps';
+      mapBtn.disabled = false;
+    }, 3000);
+  }, 300);
+});
+
 }
 
   </script>
