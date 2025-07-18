@@ -199,8 +199,12 @@
       const lat = fp - (n * tanfp / r) * (d*d/2 - (5 + 3*tanfp*tanfp + e1sq*cosfp*cosfp - 9*e1sq*tanfp*tanfp) * Math.pow(d,4)/24);
       const lon = lambda0 + (d - (1 + 2*tanfp*tanfp + e1sq*cosfp*cosfp) * Math.pow(d,3)/6) / cosfp;
 
-      document.getElementById('utm_to_dd_result').innerText =
-        `Latitude: ${(lat*180/Math.PI).toFixed(6)}, Longitude: ${(lon*180/Math.PI).toFixed(6)}`;
+      document.getElementById('utm_to_dd_result').innerHTML = `
+    <div class="result-box">
+        <p><strong>Latitude:</strong> ${(lat * 180 / Math.PI).toFixed(6)}</p>
+        <p><strong>Longitude:</strong> ${(lon * 180 / Math.PI).toFixed(6)}</p>
+    </div>`;
+
     }
   </script>
 
@@ -226,8 +230,12 @@
     const itrfE = arcE - deltaE;
     const itrfN = arcN - deltaN;
 
-    document.getElementById('arc_to_itrf_result').innerText =
-      `ITRF Easting: ${itrfE.toFixed(3)}, Northing: ${itrfN.toFixed(3)}`;
+    document.getElementById('arc_to_itrf_result').innerHTML = `
+    <div class="result-box">
+        <p><strong>ITRF Easting:</strong> ${itrfE.toFixed(3)}</p>
+        <p><strong>ITRF Northing:</strong> ${itrfN.toFixed(3)}</p>
+    </div>`;
+
   }
 </script>
 
@@ -253,8 +261,12 @@
     const arcE = itrfE + deltaE;
     const arcN = itrfN + deltaN;
 
-    document.getElementById('itrf_to_arc_result').innerText =
-      `ARC1960 Easting: ${arcE.toFixed(3)}, Northing: ${arcN.toFixed(3)}`;
+    document.getElementById('itrf_to_arc_result').innerHTML = `
+    <div class="result-box">
+        <p><strong>ARC1960 Easting:</strong> ${arcE.toFixed(3)}</p>
+        <p><strong>ARC1960 Northing:</strong> ${arcN.toFixed(3)}</p>
+    </div>`;
+
   }
 </script>
 
@@ -292,7 +304,7 @@
         cols[idxN] = (n + deltaN).toFixed(3);
         converted.push(cols.join(','));
       }
-
+      converted.unshift('Created by Alvin Shedrack');
       const blob = new Blob([converted.join('\n')], { type: "text/csv" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -383,6 +395,7 @@
         const lon = ((zone - 1) * 6 - 180 + 3) * Math.PI/180 + (d - d**3/6) / Math.cos(phi1);
         result.push(`${(lat*180/Math.PI).toFixed(6)},${(lon*180/Math.PI).toFixed(6)}`);
       }
+      converted.unshift('Created by Alvin Shedrack');
       downloadCSV(result, "utm_to_dd_converted.csv");
       status.innerText = "Download complete.";
     };
@@ -426,6 +439,7 @@
         const northingAdj = lat < 0 ? northing + 10000000 : northing;
         result.push(`${zone},${hemi},${easting.toFixed(3)},${northingAdj.toFixed(3)}`);
       }
+      converted.unshift('Created by Alvin Shedrack');
       downloadCSV(result, "dd_to_utm_converted.csv");
       status.innerText = "Download complete.";
     };
