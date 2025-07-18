@@ -282,13 +282,7 @@ function searchLocation() {
 const geoUrl = `geo:${latDeg},${lonDeg}?q=${latDeg},${lonDeg}`;
 const mapUrl = `https://www.google.com/maps?q=${latDeg},${lonDeg}`;
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-// Try geo: link for Android, fallback to web URL otherwise
-  if (isMobile && /Android/i.test(navigator.userAgent)) {
-    window.location.href = geoUrl;
-  } else {
-    window.location.href = webUrl;
-  }
-// Use unique ID for this context
+
 document.getElementById('utm_to_dd_result').innerHTML = `
   <div class="result-box">
     <p><strong>Latitude:</strong> ${latDeg}</p>
@@ -305,7 +299,16 @@ document.getElementById('utm_to_dd_result').innerHTML = `
     </button>
   </div>
 `;
-
+// Safe map open logic for Safari and others
+document.getElementById('utmMapBtn').addEventListener('click', function () {
+  if (isMobile && /Android/i.test(navigator.userAgent)) {
+    // Android usually supports geo: URIs
+    window.location.href = geoUrl;
+  } else {
+    // iOS Safari, desktop browsers fallback
+    window.open(mapUrl, '_blank');
+  }
+});
 const mapBtn = document.getElementById('utmMapBtn');
 mapBtn.addEventListener('click', () => {
   mapBtn.textContent = 'Loading...';
