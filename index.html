@@ -26,7 +26,7 @@
       padding: 20px;
     }
     .converter {
-      background: white;
+      background: rgb(75, 172, 218);
       padding: 25px;
       margin-bottom: 30px;
       border-radius: 12px;
@@ -48,7 +48,7 @@
       margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 1rem;
+      font-size: 2rem;
     }
     button {
       background: #4B0082;
@@ -73,7 +73,6 @@
 <body>
   <header>Coordinate Converter Tool</header>
   <div class="container">
-    
   <h1>Coordinate Converter</h1>
 
   <div class="converter">
@@ -194,6 +193,10 @@
   <label>ARC1960 Northing (m):</label><input type="number" id="arc_northing" step="any">
   <button onclick="convertARCtoITRF()">Convert</button>
   <div class="result" id="arc_to_itrf_result"></div>
+    <p>Upload a CSV with columns: Easting, Northing</p>
+    <input type="file" id="arc_to_itrf_file" accept=".csv" />
+    <button onclick="processARCtoITRF()">Convert & Download</button>
+    <div class="result" id="arc_to_itrf_status"></div>
 </div>
 <script>
   function convertARCtoITRF() {
@@ -237,13 +240,7 @@
   }
 </script>
 
-<div class="converter">
-  <h2>Batch Convert PNEZD CSV (ITRF to ARC1960)</h2>
-  <p>Upload a CSV file with PNEZD columns: PointID, Northing, Easting, Elevation, Description</p>
-  <input type="file" id="pnezd_file" accept=".csv" />
-  <button onclick="processPNEZD()">Convert & Download</button>
-  <div class="result" id="pnezd_status"></div>
-</div>
+
 <script>
   function processPNEZD() {
     const fileInput = document.getElementById('pnezd_file');
@@ -292,30 +289,6 @@
     reader.readAsText(fileInput.files[0]);
   }
 </script>
-
-<div class="converter">
-  <h2>Batch Convert UTM to Decimal Degrees (CSV)</h2>
-  <p>Upload a CSV with columns: Easting, Northing, Zone, Hemisphere</p>
-  <input type="file" id="utm_to_dd_file" accept=".csv" />
-  <button onclick="processUTMtoDD()">Convert & Download</button>
-  <div class="result" id="utm_to_dd_status"></div>
-</div>
-
-<div class="converter">
-  <h2>Batch Convert Decimal Degrees to UTM (CSV)</h2>
-  <p>Upload a CSV with columns: Latitude, Longitude</p>
-  <input type="file" id="dd_to_utm_file" accept=".csv" />
-  <button onclick="processDDtoUTM()">Convert & Download</button>
-  <div class="result" id="dd_to_utm_status"></div>
-</div>
-
-<div class="converter">
-  <h2>Batch Convert ARC1960 to ITRF (CSV)</h2>
-  <p>Upload a CSV with columns: Easting, Northing</p>
-  <input type="file" id="arc_to_itrf_file" accept=".csv" />
-  <button onclick="processARCtoITRF()">Convert & Download</button>
-  <div class="result" id="arc_to_itrf_status"></div>
-</div>
 
 <script>
   function parseCSVLines(content) {
