@@ -48,8 +48,20 @@
       margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 2rem;
+      font-size: 1rem;
     }
+    .result-box {
+    padding: 10px;
+    border: 1px solid #007bff;
+    background-color: #f0f8ff;
+    border-radius: 5px;
+    max-width: 300px;
+    font-family: Arial, sans-serif;
+  }
+  .result-box p {
+      margin: 5px 0;
+  }
+
     button {
       background: #4B0082;
       color: white;
@@ -66,8 +78,8 @@
     .result {
       margin-top: 15px;
       font-weight: bold;
-      color: #00e91fd0;
-      font-size: 2rem;
+      color: #6b0494d0;
+      font-size: 1rem;
     }
   </style>
 </head>
@@ -140,8 +152,13 @@
       const northingAdjusted = lat < 0 ? northing + 10000000 : northing;
       const hemisphere = lat < 0 ? 'S' : 'N';
 
-      document.getElementById('dd_to_utm_result').innerText =
-        `Zone: ${zone}${hemisphere}, Easting: ${easting.toFixed(3)}, Northing: ${northingAdjusted.toFixed(3)}`;
+      document.getElementById('dd_to_utm_result').innerHTML = `
+        <div class="result-box">
+          <p><strong>Zone:</strong> ${zone}${hemisphere}</p>
+          <p><strong>Easting:</strong> ${easting.toFixed(3)}</p>
+          <p><strong>Northing:</strong> ${northingAdjusted.toFixed(3)}</p>
+        </div>`;
+
     }
 
     function utmToDD() {
