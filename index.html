@@ -536,7 +536,7 @@ mapBtn.addEventListener('click', () => {
     };
     reader.readAsText(input.files[0]);
   }
-  <script>
+
   function processITRFtoARC() {
     const input = document.getElementById('itrf_to_arc_file');
     const status = document.getElementById('itrf_to_arc_status');
@@ -596,8 +596,6 @@ mapBtn.addEventListener('click', () => {
     link.click();
     URL.revokeObjectURL(link.href);
   }
-</script>
-
   function processUTMtoDD() {
     const input = document.getElementById('utm_to_dd_file');
     const status = document.getElementById('utm_to_dd_status');
@@ -637,7 +635,6 @@ mapBtn.addEventListener('click', () => {
     };
     reader.readAsText(input.files[0]);
   }
-
   function processDDtoUTM() {
     const input = document.getElementById('dd_to_utm_file');
     const status = document.getElementById('dd_to_utm_status');
@@ -681,6 +678,7 @@ mapBtn.addEventListener('click', () => {
     reader.readAsText(input.files[0]);
   }
 </script>
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -701,8 +699,6 @@ if ('serviceWorker' in navigator) {
     }, 1500);
   });
 }
-
-
 </script>
 </div>
 <footer>
