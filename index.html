@@ -61,7 +61,12 @@
   .result-box p {
       margin: 5px 0;
   }
-
+    footer {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 0.9rem;
+      color: #4B0082;
+    }
     button {
       background: #4B0082;
       color: white;
@@ -326,6 +331,8 @@
   }
 
   function downloadCSV(data, filename) {
+    data.push("");  // Optional blank line
+    data.push("Created by Alvin Shedrack");
     const blob = new Blob([data.join('\n')], { type: "text/csv" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -445,5 +452,8 @@
   }
 </script>
 </div>
+<footer>
+    Created by <strong>Alvin Shedrack</strong> © 2025
+  </footer>
 </body>
 </html>
