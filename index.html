@@ -109,25 +109,28 @@
       color: #6b0494d0;
       font-size: 1rem;
     }
-    #toast {
+#toast {
   visibility: hidden;
   position: fixed;
-  top: 30px;
+  top: 0;
   left: 50%;
+  transform: translate(-50%, -100%); /* Start above view */
   background-color: #333;
   color: #fff;
-  padding: 8px 12px;
-  border-radius: 4px;
+  padding: 10px 16px;
+  border-radius: 5px;
   font-size: 14px;
   z-index: 9999;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: transform 0.4s ease, opacity 0.4s ease;
 }
 
 #toast.show {
   visibility: visible;
+  transform: translate(-50%, 20px); /* Slide into view */
   opacity: 1;
 }
+
 
   </style>
 </head>
