@@ -139,7 +139,12 @@ function searchLocation() {
     const geoUrl = `geo:${lat},${lng}?q=${lat},${lng}`;
     const webUrl = `https://www.google.com/maps?q=${lat},${lng}`;
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
+    // Try geo: link for Android, fallback to web URL otherwise
+      if (isMobile && /Android/i.test(navigator.userAgent)) {
+        window.location.href = geoUrl;
+      } else {
+        window.location.href = webUrl;
+      }
     // Delay to allow DOM to update
     setTimeout(() => {
       if (isMobile) {
@@ -277,7 +282,12 @@ function searchLocation() {
 const geoUrl = `geo:${latDeg},${lonDeg}?q=${latDeg},${lonDeg}`;
 const mapUrl = `https://www.google.com/maps?q=${latDeg},${lonDeg}`;
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
+// Try geo: link for Android, fallback to web URL otherwise
+  if (isMobile && /Android/i.test(navigator.userAgent)) {
+    window.location.href = geoUrl;
+  } else {
+    window.location.href = webUrl;
+  }
 // Use unique ID for this context
 document.getElementById('utm_to_dd_result').innerHTML = `
   <div class="result-box">
