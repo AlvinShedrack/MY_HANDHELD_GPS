@@ -144,12 +144,12 @@
     <h2>Degrees to UTM(ITRF)</h2>
     <label>Latitude:</label><input type="number" id="dd_lat" step="any">
     <label>Longitude:</label><input type="number" id="dd_lon" step="any">
-    <button onclick="ddToUTM()">Convert</button>
+    <button data-action="ddToUTM()">Convert</button>
     <button id="mapBtn" type="button" onclick="searchLocation()">View in Google Maps</button>
     <div class="result" id="dd_to_utm_result"></div>
       <p>Upload a CSV with Latitude,Longitude columns:</p>
       <input type="file" id="dd_to_utm_file" accept=".csv" />
-      <button onclick="processDDtoUTM()">Convert & Download</button>
+      <button data-action="processDDtoUTM()">Convert & Download</button>
       <div class="result" id="dd_to_utm_status"></div>
     
   </div>
@@ -217,11 +217,11 @@ setTimeout(() => {
       <option value="S">S</option>
     </select>
 
-    <button onclick="utmToDD()">Convert</button>
+    <button data-action="utmToDD()">Convert</button>
     <div class="result" id="utm_to_dd_result"></div>
       <p>Upload a CSV with Easting,Northing,Zone,Hemisphere columns:</p>
       <input type="file" id="utm_to_dd_file" accept=".csv" />
-      <button onclick="processUTMtoDD()">Convert & Download</button>
+      <button data-action="processUTMtoDD()">Convert & Download</button>
       <div class="result" id="utm_to_dd_status"></div>
     
   </div>
@@ -381,11 +381,11 @@ mapBtn.addEventListener('click', () => {
   <h2>ARC1960 (Zone 36N) to ITRF</h2>
   <label>ARC1960 Easting (m):</label><input type="number" id="arc_easting" step="any">
   <label>ARC1960 Northing (m):</label><input type="number" id="arc_northing" step="any">
-  <button onclick="convertARCtoITRF()">Convert</button>
+  <button data-action="convertARCtoITRF()">Convert</button>
   <div class="result" id="arc_to_itrf_result"></div>
     <p>Upload a CSV with columns: Easting, Northing</p>
     <input type="file" id="arc_to_itrf_file" accept=".csv" />
-    <button onclick="processARCtoITRF()">Convert & Download</button>
+    <button data-action="processARCtoITRF()">Convert & Download</button>
     <div class="result" id="arc_to_itrf_status"></div>
 </div>
 <script>
@@ -411,11 +411,11 @@ mapBtn.addEventListener('click', () => {
   <h2>ITRF to ARC1960 (Zone 36N)</h2>
   <label>ITRF Easting (m):</label><input type="number" id="itrf_easting" step="any">
   <label>ITRF Northing (m):</label><input type="number" id="itrf_northing" step="any">
-  <button onclick="convertITRFtoARC()">Convert</button>
+  <button data-action="convertITRFtoARC()">Convert</button>
   <div class="result" id="itrf_to_arc_result"></div>
     <p>Upload a CSV with Easting,Northing columns:</p>
     <input type="file" id="itrf_to_arc_file" accept=".csv" />
-    <button onclick="processITRFtoARC()">Convert & Download</button>
+    <button data-action="processITRFtoARC()">Convert & Download</button>
     <div class="result" id="itrf_to_arc_status"></div>
     
 </div>
@@ -450,10 +450,14 @@ mapBtn.addEventListener('click', () => {
     const fileInput = document.getElementById('pnezd_file');
     const status = document.getElementById('pnezd_status');
 
-    if (!fileInput.files.length) {
-      status.innerText = "Please upload a CSV file.";
+    if (!input.files.length) {
+      status.innerText = "Please upload a CSV.";
+      status.style.color = "red";
+      status.style.fontWeight = "bold";
+      status.style.marginTop = "10px";
       return;
     }
+
 
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -514,7 +518,14 @@ mapBtn.addEventListener('click', () => {
   function processARCtoITRF() {
     const input = document.getElementById('arc_to_itrf_file');
     const status = document.getElementById('arc_to_itrf_status');
-    if (!input.files.length) return status.innerText = "Please upload a CSV.";
+    if (!input.files.length) {
+      status.innerText = "Please upload a CSV.";
+      status.style.color = "red";
+      status.style.fontWeight = "bold";
+      status.style.marginTop = "10px";
+      return;
+    }
+
 
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -541,10 +552,14 @@ mapBtn.addEventListener('click', () => {
     const input = document.getElementById('itrf_to_arc_file');
     const status = document.getElementById('itrf_to_arc_status');
 
-    if (!input.files.length) {
-      status.innerText = "Please upload a CSV.";
-      return;
-    }
+if (!input.files.length) {
+  status.innerText = "Please upload a CSV.";
+  status.style.color = "red";
+  status.style.fontWeight = "bold";
+  status.style.marginTop = "10px";
+  return;
+}
+
 
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -599,7 +614,14 @@ mapBtn.addEventListener('click', () => {
   function processUTMtoDD() {
     const input = document.getElementById('utm_to_dd_file');
     const status = document.getElementById('utm_to_dd_status');
-    if (!input.files.length) return status.innerText = "Please upload a CSV.";
+    if (!input.files.length) {
+  status.innerText = "Please upload a CSV.";
+  status.style.color = "red";
+  status.style.fontWeight = "bold";
+  status.style.marginTop = "10px";
+  return;
+}
+
 
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -638,7 +660,14 @@ mapBtn.addEventListener('click', () => {
   function processDDtoUTM() {
     const input = document.getElementById('dd_to_utm_file');
     const status = document.getElementById('dd_to_utm_status');
-    if (!input.files.length) return status.innerText = "Please upload a CSV.";
+    if (!input.files.length) {
+  status.innerText = "Please upload a CSV.";
+  status.style.color = "red";
+  status.style.fontWeight = "bold";
+  status.style.marginTop = "10px";
+  return;
+}
+
 
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -704,5 +733,38 @@ if ('serviceWorker' in navigator) {
 <footer>
     Created by <strong>Alvin Shedrack</strong> © 2025
   </footer>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const buttons = document.querySelectorAll('button[data-action]');
+    
+    buttons.forEach(button => {
+      button.addEventListener('click', function (e) {
+        e.preventDefault();
+        
+        const originalText = button.textContent;
+        button.textContent = 'Loading...';
+        button.disabled = true;
+
+        const action = button.getAttribute('data-action');
+
+        // Wait a bit for loading effect, then execute the function
+        setTimeout(() => {
+          try {
+            new Function(action)();  // Run the string as a function
+          } catch (err) {
+            console.error("Action failed:", err);
+          }
+
+          // Restore button state after 2.5s
+          setTimeout(() => {
+            button.textContent = originalText;
+            button.disabled = false;
+          }, 600);
+        }, 200);
+      });
+    });
+  });
+</script>
+
 </body>
 </html>
