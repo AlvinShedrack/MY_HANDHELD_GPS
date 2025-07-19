@@ -1,4 +1,4 @@
-const CACHE_NAME = 'converter-cache-v4';
+const CACHE_NAME = 'converter-cache-v5';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -7,31 +7,42 @@ const urlsToCache = [
   '/ICON.png'
 ];
 
+// Install & pre-cache
 self.addEventListener('install', event => {
-  self.skipWaiting();  // Force activate immediately
+  console.log('[SW] Install');
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(urlsToCache);
+    })
   );
 });
 
+// Activate & clean old caches
 self.addEventListener('activate', event => {
+  console.log('[SW] Activate');
   event.waitUntil(
     caches.keys().then(cacheNames =>
       Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) return caches.delete(cache);
+        cacheNames.map(name => {
+          if (name !== CACHE_NAME) return caches.delete(name);
         })
       )
     )
   );
-  return self.clients.claim();  // Take control immediately
+  return self.clients.claim();
 });
 
+// Fetch handler
 self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request).catch(() => {
       return caches.match(event.request).then(response => {
-        return response || caches.match('/offline.html');
+        // Fallback only for document requests
+        if (response) return response;
+        if (event.request.destination === 'document') {
+          return caches.match('/offline.html');
+        }
       });
     })
   );
