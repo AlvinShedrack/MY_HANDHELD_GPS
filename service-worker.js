@@ -8,7 +8,7 @@ self.addEventListener('install', function(e) {
         '/script.js',
         '/manifest.json',
         '/ICON.png',
-        '/ICON.png'
+        '/offline.html'  // Add offline fallback page to cache
       ]);
     })
   );
@@ -16,8 +16,10 @@ self.addEventListener('install', function(e) {
 
 self.addEventListener('fetch', function(e) {
   e.respondWith(
-    caches.match(e.request).then(function(response) {
-      return response || fetch(e.request);
+    fetch(e.request).catch(() => {
+      return caches.match(e.request).then(function(response) {
+        return response || caches.match('/index.html');
+      });
     })
   );
 });
