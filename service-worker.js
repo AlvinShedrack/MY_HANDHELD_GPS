@@ -7,18 +7,14 @@ const urlsToCache = [
   '/ICON.png'
 ];
 
-// Install & pre-cache
 self.addEventListener('install', event => {
   console.log('[SW] Install');
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
-// Activate & clean old caches
 self.addEventListener('activate', event => {
   console.log('[SW] Activate');
   event.waitUntil(
@@ -33,12 +29,10 @@ self.addEventListener('activate', event => {
   return self.clients.claim();
 });
 
-// Fetch handler
 self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request).catch(() => {
       return caches.match(event.request).then(response => {
-        // Fallback only for document requests
         if (response) return response;
         if (event.request.destination === 'document') {
           return caches.match('/offline.html');
