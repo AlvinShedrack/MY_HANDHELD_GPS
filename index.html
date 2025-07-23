@@ -1060,7 +1060,7 @@ if ('serviceWorker' in navigator) {
       font-family: inherit;
     "></textarea>
 
-    <input type="text" id="feedbackName" placeholder="Your name (optional)" style="
+    <input type="text" id="feedbackName" placeholder="Your name and email" style="
       margin-top: 10px;
       width: 100%;
       padding: 10px;
@@ -1070,15 +1070,7 @@ if ('serviceWorker' in navigator) {
       font-family: inherit;
     ">
 
-    <input type="email" id="feedbackEmail" placeholder="Your email (optional)" style="
-      margin-top: 10px;
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: inherit;
-    ">
+
 
     <button onclick="submitFeedback()" style="
       margin-top: 14px;
@@ -1125,7 +1117,7 @@ if ('serviceWorker' in navigator) {
   async function submitFeedback() {
     const message = document.getElementById('feedbackText').value.trim();
     const name = document.getElementById('feedbackName').value.trim();
-    const email = document.getElementById('feedbackEmail').value.trim();
+  
 
     if (!message) {
       alert("Feedback cannot be empty.");
@@ -1137,7 +1129,7 @@ if ('serviceWorker' in navigator) {
     const feedback = {
       message,
       name: name || "anonymous",
-      email: email || "anonymous@example.com",
+  
     };
 
     try {
@@ -1158,7 +1150,7 @@ if ('serviceWorker' in navigator) {
 
     document.getElementById('feedbackText').value = '';
     document.getElementById('feedbackName').value = '';
-    document.getElementById('feedbackEmail').value = '';
+
     document.getElementById('feedbackModal').style.display = 'none';
   }
 
