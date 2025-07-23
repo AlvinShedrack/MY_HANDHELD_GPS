@@ -148,7 +148,7 @@
     <button data-action="ddToUTM()">Convert</button>
     <button id="mapBtn" type="button" onclick="searchLocation()">View in Google Maps</button>
     <div class="result" id="dd_to_utm_result"></div>
-      <p>Upload a CSV with Latitude,Longitude columns:</p>
+      <p>Upload a CSV with Lat and Lon columns:</p>
       <input type="file" id="dd_to_utm_file" accept=".csv" />
       <button data-action="processDDtoUTM()">Convert & Download</button>
       <div class="result" id="dd_to_utm_status"></div>
@@ -220,7 +220,7 @@ setTimeout(() => {
 
     <button data-action="utmToDD()">Convert</button>
     <div class="result" id="utm_to_dd_result"></div>
-      <p>Upload a CSV with Easting,Northing,Zone,Hemisphere columns:</p>
+      <p>Upload a CSV with E and N columns:</p>
       <input type="file" id="utm_to_dd_file" accept=".csv" />
       <button data-action="processUTMtoDD()">Convert & Download</button>
       <div class="result" id="utm_to_dd_status"></div>
@@ -384,28 +384,52 @@ mapBtn.addEventListener('click', () => {
   <label>ARC1960 Northing (m):</label><input type="number" id="arc_northing" step="any">
   <button data-action="convertARCtoITRF()">Convert</button>
   <div class="result" id="arc_to_itrf_result"></div>
-    <p>Upload a CSV with columns: Easting, Northing</p>
+    <p>Upload a CSV with columns: E and N</p>
     <input type="file" id="arc_to_itrf_file" accept=".csv" />
     <button data-action="processARCtoITRF()">Convert & Download</button>
     <div class="result" id="arc_to_itrf_status"></div>
 </div>
 <script>
-  function convertARCtoITRF() {
-    const arcE = parseFloat(document.getElementById('arc_easting').value);
-    const arcN = parseFloat(document.getElementById('arc_northing').value);
-    const deltaE = -83.86;
-    const deltaN = 296.894;
+function convertARCtoITRF() {
+  const arcE = parseFloat(document.getElementById('arc_easting').value);
+  const arcN = parseFloat(document.getElementById('arc_northing').value);
 
-    const itrfE = arcE - deltaE;
-    const itrfN = arcN - deltaN;
+  // Reference ARC points with their respective shifts
+  const referenceOffsets = [
+    { E: 600000, N: 80000, eAdd: -84.178, nAdd: 296.226 },
+    { E: 620000, N: 90000, eAdd: -84.104, nAdd: 296.369 },
+    { E: 630000, N: 100000, eAdd: -84.050, nAdd: 296.508 },
+    { E: 640000, N: 110000, eAdd: -83.987, nAdd: 296.654 },
+    { E: 650000, N: 120000, eAdd: -83.915, nAdd: 296.804 },
+    { E: 660000, N: 130000, eAdd: -83.833, nAdd: 296.957 },
+    { E: 680000, N: 150000, eAdd: -83.640, nAdd: 297.266 },
+    { E: 680000, N: 160000, eAdd: -83.584, nAdd: 297.313 },
+    { E: 680000, N: 180000, eAdd: -83.464, nAdd: 297.356 },
+  ];
 
-    document.getElementById('arc_to_itrf_result').innerHTML = `
-    <div class="result-box">
-        <p><strong>ITRF Easting:</strong><span class="copyable" onclick="copyText(this)"> ${itrfE.toFixed(3)}</p>
-        <p><strong>ITRF Northing:</strong><span class="copyable" onclick="copyText(this)"> ${itrfN.toFixed(3)}</p>
-    </div>`;
+  // Find the nearest reference point using Euclidean distance
+  let nearest = referenceOffsets[0];
+  let minDist = Math.hypot(arcE - nearest.E, arcN - nearest.N);
 
+  for (let i = 1; i < referenceOffsets.length; i++) {
+    const ref = referenceOffsets[i];
+    const dist = Math.hypot(arcE - ref.E, arcN - ref.N);
+    if (dist < minDist) {
+      nearest = ref;
+      minDist = dist;
+    }
   }
+
+  const itrfE = arcE + nearest.eAdd;
+  const itrfN = arcN + nearest.nAdd;
+
+  document.getElementById('arc_to_itrf_result').innerHTML = `
+    <div class="result-box">
+      <p><strong>ITRF Easting:</strong><span class="copyable" onclick="copyText(this)"> ${itrfE.toFixed(3)}</span></p>
+      <p><strong>ITRF Northing:</strong><span class="copyable" onclick="copyText(this)"> ${itrfN.toFixed(3)}</span></p>
+    </div>`;
+}
+
 </script>
 
 <div class="converter">
@@ -414,7 +438,7 @@ mapBtn.addEventListener('click', () => {
   <label>ITRF Northing (m):</label><input type="number" id="itrf_northing" step="any">
   <button data-action="convertITRFtoARC()">Convert</button>
   <div class="result" id="itrf_to_arc_result"></div>
-    <p>Upload a CSV with Easting,Northing columns:</p>
+    <p>Upload a CSV with E and N columns:</p>
     <input type="file" id="itrf_to_arc_file" accept=".csv" />
     <button data-action="processITRFtoARC()">Convert & Download</button>
     <div class="result" id="itrf_to_arc_status"></div>
@@ -430,11 +454,40 @@ mapBtn.addEventListener('click', () => {
     return;
   }
 
-  const deltaE = -83.86;
-  const deltaN = 296.894;
+  // ARC reference points with known offsets
+  const referenceOffsets = [
+    { E: 600000, N: 80000, eAdd: -84.178, nAdd: 296.226 },
+    { E: 620000, N: 90000, eAdd: -84.104, nAdd: 296.369 },
+    { E: 630000, N: 100000, eAdd: -84.050, nAdd: 296.508 },
+    { E: 640000, N: 110000, eAdd: -83.987, nAdd: 296.654 },
+    { E: 650000, N: 120000, eAdd: -83.915, nAdd: 296.804 },
+    { E: 660000, N: 130000, eAdd: -83.833, nAdd: 296.957 },
+    { E: 680000, N: 150000, eAdd: -83.640, nAdd: 297.266 },
+    { E: 680000, N: 160000, eAdd: -83.584, nAdd: 297.313 },
+    { E: 680000, N: 180000, eAdd: -83.464, nAdd: 297.356 },
+  ];
 
-  const arcE = itrfE + deltaE;
-  const arcN = itrfN + deltaN;
+  // Find nearest converted ARC reference to ITRF input
+  let nearest = referenceOffsets[0];
+  let minDist = Math.hypot(
+    itrfE - (nearest.E + nearest.eAdd),
+    itrfN - (nearest.N + nearest.nAdd)
+  );
+
+  for (let i = 1; i < referenceOffsets.length; i++) {
+    const ref = referenceOffsets[i];
+    const transformedE = ref.E + ref.eAdd;
+    const transformedN = ref.N + ref.nAdd;
+    const dist = Math.hypot(itrfE - transformedE, itrfN - transformedN);
+    if (dist < minDist) {
+      nearest = ref;
+      minDist = dist;
+    }
+  }
+
+  // Reverse transformation to ARC
+  const arcE = itrfE - nearest.eAdd;
+  const arcN = itrfN - nearest.nAdd;
 
   document.getElementById('itrf_to_arc_result').innerHTML = `
     <div class="result-box">
@@ -442,6 +495,7 @@ mapBtn.addEventListener('click', () => {
       <p><strong>ARC1960 Northing:</strong> <span class="copyable" onclick="copyText(this)">${arcN.toFixed(3)}</span></p>
     </div>`;
 }
+
 
 </script>
 
@@ -497,6 +551,17 @@ mapBtn.addEventListener('click', () => {
 
     reader.readAsText(fileInput.files[0]);
   }
+  function normalizeHeader(header) {
+  return header.map(col => {
+    const lower = col.trim().toLowerCase();
+    if (lower.includes("latitude")) return "Lat";
+    if (lower.includes("longitude")) return "Lon";
+    if (lower.includes("easting")) return "E";
+    if (lower.includes("northing")) return "N";
+    return col.trim();
+  });
+}
+
 </script>
 
 <script>
@@ -515,87 +580,182 @@ mapBtn.addEventListener('click', () => {
     link.click();
     document.body.removeChild(link);
   }
+function normalizeHeader(header) {
+  return header.map(col => {
+    const lower = col.trim().toLowerCase();
+    if (lower.includes("latitude")) return "Lat";
+    if (lower.includes("longitude")) return "Lon";
+    if (lower.includes("easting")) return "E";
+    if (lower.includes("northing")) return "N";
+    return col.trim();
+  });
+}
 
-  function processARCtoITRF() {
-    const input = document.getElementById('arc_to_itrf_file');
-    const status = document.getElementById('arc_to_itrf_status');
-    if (!input.files.length) {
-      status.innerText = "Please upload a CSV.";
-      status.style.color = "red";
-      status.style.fontWeight = "bold";
-      status.style.marginTop = "10px";
+function processARCtoITRF() {
+  const input = document.getElementById('arc_to_itrf_file');
+  const status = document.getElementById('arc_to_itrf_status');
+
+  if (!input.files.length) {
+    status.innerText = "Please upload a CSV.";
+    status.style.color = "red";
+    status.style.fontWeight = "bold";
+    status.style.marginTop = "10px";
+    return;
+  }
+
+  // Reference ARC values and their respective E+ / N+ shifts
+  const referenceOffsets = [
+    { E: 600000, N: 80000, eAdd: -84.178, nAdd: 296.226 },
+    { E: 620000, N: 90000, eAdd: -84.104, nAdd: 296.369 },
+    { E: 630000, N: 100000, eAdd: -84.050, nAdd: 296.508 },
+    { E: 640000, N: 110000, eAdd: -83.987, nAdd: 296.654 },
+    { E: 650000, N: 120000, eAdd: -83.915, nAdd: 296.804 },
+    { E: 660000, N: 130000, eAdd: -83.833, nAdd: 296.957 },
+    { E: 680000, N: 150000, eAdd: -83.640, nAdd: 297.266 },
+    { E: 680000, N: 160000, eAdd: -83.584, nAdd: 297.313 },
+    { E: 680000, N: 180000, eAdd: -83.464, nAdd: 297.356 },
+  ];
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = parseCSVLines(e.target.result);
+    const header = lines[0];
+    const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
+    const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
+
+    if (idxE === -1 || idxN === -1) {
+      status.innerText = "Missing columns.";
       return;
     }
 
+    const result = [header.join(',')];
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const lines = parseCSVLines(e.target.result);
-      const header = lines[0];
-      const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
-      const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
-      if (idxE === -1 || idxN === -1) return status.innerText = "Missing columns.";
+    for (let i = 1; i < lines.length; i++) {
+      const row = lines[i];
+      const eVal = parseFloat(row[idxE]);
+      const nVal = parseFloat(row[idxN]);
 
-      const result = [header.join(',')];
-      for (let i = 1; i < lines.length; i++) {
-        const row = lines[i];
-        row[idxE] = (parseFloat(row[idxE]) - -83.86).toFixed(3);
-        row[idxN] = (parseFloat(row[idxN]) - 296.894).toFixed(3);
-        result.push(row.join(','));
+      // Find nearest reference point based on Euclidean distance
+      let nearest = referenceOffsets[0];
+      let minDist = Math.hypot(eVal - nearest.E, nVal - nearest.N);
+
+      for (let j = 1; j < referenceOffsets.length; j++) {
+        const ref = referenceOffsets[j];
+        const dist = Math.hypot(eVal - ref.E, nVal - ref.N);
+        if (dist < minDist) {
+          nearest = ref;
+          minDist = dist;
+        }
       }
-      downloadCSV(result, "arc_to_itrf_converted.csv");
-      status.innerText = "Download complete.";
-    };
-    reader.readAsText(input.files[0]);
-  }
+        function normalizeHeader(header) {
+  return header.map(col => {
+    const lower = col.trim().toLowerCase();
+    if (lower.includes("latitude")) return "Lat";
+    if (lower.includes("longitude")) return "Lon";
+    if (lower.includes("easting")) return "E";
+    if (lower.includes("northing")) return "N";
+    return col.trim();
+  });
+}
 
-  function processITRFtoARC() {
-    const input = document.getElementById('itrf_to_arc_file');
-    const status = document.getElementById('itrf_to_arc_status');
+      row[idxE] = (eVal + nearest.eAdd).toFixed(3);
+      row[idxN] = (nVal + nearest.nAdd).toFixed(3);
+      result.push(row.join(','));
+    }
 
-if (!input.files.length) {
-  status.innerText = "Please upload a CSV.";
-  status.style.color = "red";
-  status.style.fontWeight = "bold";
-  status.style.marginTop = "10px";
-  return;
+    downloadCSV(result, "arc_to_itrf_converted.csv");
+    status.innerText = "Download complete.";
+  };
+
+  reader.readAsText(input.files[0]);
 }
 
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const lines = parseCSVLines(e.target.result);
-      const header = lines[0];
-      const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
-      const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
+ function processITRFtoARC() {
+  const input = document.getElementById('itrf_to_arc_file');
+  const status = document.getElementById('itrf_to_arc_status');
 
-      if (idxE === -1 || idxN === -1) {
-        status.innerText = "Missing 'Easting' or 'Northing' column.";
-        return;
-      }
-
-      const deltaE = -83.86;
-      const deltaN = 296.894;
-
-      const result = [header.join(',')];
-      for (let i = 1; i < lines.length; i++) {
-        const row = lines[i];
-        const origE = parseFloat(row[idxE]);
-        const origN = parseFloat(row[idxN]);
-
-        if (isNaN(origE) || isNaN(origN)) continue;
-
-        row[idxE] = (origE + deltaE).toFixed(3);
-        row[idxN] = (origN + deltaN).toFixed(3);
-        result.push(row.join(','));
-      }
-
-      downloadCSV(result, "itrf_to_arc_converted.csv");
-      status.innerText = "Conversion complete. File downloaded.";
-    };
-
-    reader.readAsText(input.files[0]);
+  if (!input.files.length) {
+    status.innerText = "Please upload a CSV.";
+    status.style.color = "red";
+    status.style.fontWeight = "bold";
+    status.style.marginTop = "10px";
+    return;
   }
+
+  // ARC reference points with associated shift values
+  const referenceOffsets = [
+    { E: 600000, N: 80000, eAdd: -84.178, nAdd: 296.226 },
+    { E: 620000, N: 90000, eAdd: -84.104, nAdd: 296.369 },
+    { E: 630000, N: 100000, eAdd: -84.050, nAdd: 296.508 },
+    { E: 640000, N: 110000, eAdd: -83.987, nAdd: 296.654 },
+    { E: 650000, N: 120000, eAdd: -83.915, nAdd: 296.804 },
+    { E: 660000, N: 130000, eAdd: -83.833, nAdd: 296.957 },
+    { E: 680000, N: 150000, eAdd: -83.640, nAdd: 297.266 },
+    { E: 680000, N: 160000, eAdd: -83.584, nAdd: 297.313 },
+    { E: 680000, N: 180000, eAdd: -83.464, nAdd: 297.356 },
+  ];
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = parseCSVLines(e.target.result);
+    const header = lines[0];
+    const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
+    const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
+
+    if (idxE === -1 || idxN === -1) {
+      status.innerText = "Missing 'Easting' or 'Northing' column.";
+      return;
+    }
+
+    const result = [header.join(',')];
+
+    for (let i = 1; i < lines.length; i++) {
+      const row = lines[i];
+      const origE = parseFloat(row[idxE]);
+      const origN = parseFloat(row[idxN]);
+
+      if (isNaN(origE) || isNaN(origN)) continue;
+
+      // Find the closest ARC reference point
+      let nearest = referenceOffsets[0];
+      let minDist = Math.hypot(origE - (nearest.E + nearest.eAdd), origN - (nearest.N + nearest.nAdd));
+
+      for (let j = 1; j < referenceOffsets.length; j++) {
+        const ref = referenceOffsets[j];
+        const convertedRefE = ref.E + ref.eAdd;
+        const convertedRefN = ref.N + ref.nAdd;
+        const dist = Math.hypot(origE - convertedRefE, origN - convertedRefN);
+
+        if (dist < minDist) {
+          nearest = ref;
+          minDist = dist;
+        }
+      }
+        function normalizeHeader(header) {
+  return header.map(col => {
+    const lower = col.trim().toLowerCase();
+    if (lower.includes("latitude")) return "Lat";
+    if (lower.includes("longitude")) return "Lon";
+    if (lower.includes("easting")) return "E";
+    if (lower.includes("northing")) return "N";
+    return col.trim();
+  });
+}
+
+      // Apply reverse transformation: subtract eAdd/nAdd to get back to ARC
+      row[idxE] = (origE - nearest.eAdd).toFixed(3);
+      row[idxN] = (origN - nearest.nAdd).toFixed(3);
+      result.push(row.join(','));
+    }
+
+    downloadCSV(result, "itrf_to_arc_converted.csv");
+    status.innerText = "Conversion complete. File downloaded.";
+  };
+
+  reader.readAsText(input.files[0]);
+}
+
 
   function parseCSVLines(text) {
     const lines = text.trim().split('\n');
@@ -612,6 +772,17 @@ if (!input.files.length) {
     link.click();
     URL.revokeObjectURL(link.href);
   }
+  function normalizeHeader(header) {
+  return header.map(col => {
+    const lower = col.trim().toLowerCase();
+    if (lower.includes("latitude")) return "Lat";
+    if (lower.includes("longitude")) return "Lon";
+    if (lower.includes("easting")) return "E";
+    if (lower.includes("northing")) return "N";
+    return col.trim();
+  });
+}
+
   function processUTMtoDD() {
     const input = document.getElementById('utm_to_dd_file');
     const status = document.getElementById('utm_to_dd_status');
@@ -630,16 +801,22 @@ if (!input.files.length) {
       const header = lines[0];
       const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
       const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
-      const idxZ = header.findIndex(h => h.toLowerCase().includes("zone"));
-      const idxH = header.findIndex(h => h.toLowerCase().includes("hemi"));
-      if ([idxE, idxN, idxZ, idxH].includes(-1)) return status.innerText = "Missing columns.";
+// Default values
+const defaultZone = 36;
+const defaultHemisphere = 'N';
+if ([idxE, idxN].includes(-1)) {
+  status.innerText = "Missing Easting/Northing columns.";
+  return;
+}
+
+
 
       const result = ["Latitude,Longitude"];
       for (let i = 1; i < lines.length; i++) {
         const row = lines[i];
         const e = parseFloat(row[idxE]) - 500000;
-        const n = row[idxH].toUpperCase() === 'S' ? parseFloat(row[idxN]) - 10000000 : parseFloat(row[idxN]);
-        const zone = parseInt(row[idxZ]);
+const n = defaultHemisphere === 'S' ? parseFloat(row[idxN]) - 10000000 : parseFloat(row[idxN]);
+const zone = defaultZone;
         const a = 6378137.0, f = 1/298.257223563, k0 = 0.9996, e2 = f * (2 - f);
         const m = n / k0;
         const mu = m / (a * (1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256));
@@ -658,6 +835,17 @@ if (!input.files.length) {
     };
     reader.readAsText(input.files[0]);
   }
+  function normalizeHeader(header) {
+  return header.map(col => {
+    const lower = col.trim().toLowerCase();
+    if (lower.includes("latitude")) return "Lat";
+    if (lower.includes("longitude")) return "Lon";
+    if (lower.includes("easting")) return "E";
+    if (lower.includes("northing")) return "N";
+    return col.trim();
+  });
+}
+
   function processDDtoUTM() {
     const input = document.getElementById('dd_to_utm_file');
     const status = document.getElementById('dd_to_utm_status');
@@ -673,9 +861,11 @@ if (!input.files.length) {
     const reader = new FileReader();
     reader.onload = function(e) {
       const lines = parseCSVLines(e.target.result);
-      const header = lines[0];
-      const idxLat = header.findIndex(h => h.toLowerCase().includes("lat"));
-      const idxLon = header.findIndex(h => h.toLowerCase().includes("lon"));
+const rawHeader = lines[0];
+const header = normalizeHeader(rawHeader);
+const idxLat = header.findIndex(h => h === "Lat");
+const idxLon = header.findIndex(h => h === "Lon");
+
       if (idxLat === -1 || idxLon === -1) return status.innerText = "Missing columns.";
 
       const result = ["Zone,Hemisphere,Easting,Northing"];
@@ -707,6 +897,17 @@ if (!input.files.length) {
     };
     reader.readAsText(input.files[0]);
   }
+  function normalizeHeader(header) {
+  return header.map(col => {
+    const lower = col.trim().toLowerCase();
+    if (lower.includes("latitude")) return "Lat";
+    if (lower.includes("longitude")) return "Lon";
+    if (lower.includes("easting")) return "E";
+    if (lower.includes("northing")) return "N";
+    return col.trim();
+  });
+}
+
 </script>
 
 <script>
