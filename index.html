@@ -1008,6 +1008,127 @@ if ('serviceWorker' in navigator) {
     alert("All fields have been cleared.");
   });
 </script>
+<!-- Feedback Button -->
+<button id="feedbackBtn" style="
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  padding: 12px 20px;
+  background-color: teal;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+  z-index: 999;
+">Feedback</button>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" style="display:none; position: fixed; bottom: 140px; right: 20px; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 1000;">
+  <textarea id="feedbackText" placeholder="Enter your feedback..." rows="4" style="width: 250px; padding: 8px;"></textarea>
+  <input type="text" id="feedbackName" placeholder="Your name (optional)" style="margin-top: 8px; width: 250px; padding: 8px;">
+  <input type="email" id="feedbackEmail" placeholder="Your email (optional)" style="margin-top: 8px; width: 250px; padding: 8px;">
+  <button onclick="submitFeedback()" style="margin-top: 8px; background: #4B0082; color: white; padding: 8px 16px; border: none; border-radius: 6px;">Submit</button>
+</div>
+
+
+<script>
+const formspreeEndpoint = "https://formspree.io/f/mgvzarvk"; // Replace with your Formspree endpoint
+
+document.getElementById('feedbackBtn').addEventListener('click', () => {
+  const modal = document.getElementById('feedbackModal');
+  modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
+});
+
+function submitFeedback() {
+  const message = document.getElementById('feedbackText').value.trim();
+  const email = document.getElementById('feedbackEmail').value.trim();
+  if (!message) {
+    alert("Feedback cannot be empty.");
+    return;
+  }
+
+  const feedback = { message, email, timestamp: new Date().toISOString() };
+
+  if (!navigator.onLine) {
+    const pending = JSON.parse(localStorage.getItem('offlineFeedback') || '[]');
+    pending.push(feedback);
+    localStorage.setItem('offlineFeedback', JSON.stringify(pending));
+    alert("You're offline. Feedback saved and will be sent when you're back online.");
+  } else {
+    sendToFormspree(feedback);
+  }
+
+  // Reset form
+  document.getElementById('feedbackText').value = '';
+  document.getElementById('feedbackEmail').value = '';
+  document.getElementById('feedbackModal').style.display = 'none';
+}
+
+function sendToFormspree(feedback) {
+  fetch(formspreeEndpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: feedback.message,
+      email: feedback.email || "anonymous",
+      timestamp: feedback.timestamp
+    })
+  }).then(res => {
+    if (res.ok) {
+      showToast(); // ✅ success
+    } else {
+      const pending = JSON.parse(localStorage.getItem('offlineFeedback') || '[]');
+      pending.push(feedback);
+      localStorage.setItem('offlineFeedback', JSON.stringify(pending));
+      showToast("Unable to send feedback. Saved locally.", "#ffc107");
+    }
+  }).catch(() => {
+    const pending = JSON.parse(localStorage.getItem('offlineFeedback') || '[]');
+    pending.push(feedback);
+    localStorage.setItem('offlineFeedback', JSON.stringify(pending));
+    showToast("Offline. Feedback saved for later.", "#ffc107");
+  });
+}
+
+window.addEventListener('online', () => {
+  const offlineData = JSON.parse(localStorage.getItem('offlineFeedback') || '[]');
+  if (offlineData.length > 0) {
+    offlineData.forEach(sendToFormspree);
+    localStorage.removeItem('offlineFeedback');
+    showToast("Offline feedback sent!", "#17a2b8");
+  }
+});
+
+function showToast(message = "Feedback sent successfully!", color = "#28a745") {
+  const toast = document.getElementById("feedbackToast");
+  toast.textContent = message;
+  toast.style.backgroundColor = color;
+  toast.style.display = "block";
+
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 3000);
+}
+
+</script>
+<div id="feedbackToast" style="
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #28a745;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  display: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  z-index: 9999;
+">
+  Feedback sent successfully!
+</div>
 
 </body>
 </html>
