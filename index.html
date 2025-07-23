@@ -1009,110 +1009,164 @@ if ('serviceWorker' in navigator) {
   });
 </script>
 <!-- Feedback Button -->
-<button id="feedbackBtn" style="
+<button onclick="toggleFeedback()" style="
   position: fixed;
   bottom: 80px;
   right: 20px;
-  padding: 12px 20px;
-  background-color: teal;
+  background: #4B0082;
   color: white;
   border: none;
-  border-radius: 50px;
+  border-radius: 30px;
+  padding: 12px 20px;
   font-size: 16px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  font-weight: 500;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   cursor: pointer;
+  transition: background 0.3s ease;
   z-index: 999;
-">Feedback</button>
+">
+  💬 Give Feedback
+</button>
+
+
 
 <!-- Feedback Modal -->
-<div id="feedbackModal" style="display:none; position: fixed; bottom: 140px; right: 20px; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 1000;">
-  <textarea id="feedbackText" placeholder="Enter your feedback..." rows="4" style="width: 250px; padding: 8px;"></textarea>
-  <input type="text" id="feedbackName" placeholder="Your name (optional)" style="margin-top: 8px; width: 250px; padding: 8px;">
-  <input type="email" id="feedbackEmail" placeholder="Your email (optional)" style="margin-top: 8px; width: 250px; padding: 8px;">
-  <button onclick="submitFeedback()" style="margin-top: 8px; background: #4B0082; color: white; padding: 8px 16px; border: none; border-radius: 6px;">Submit</button>
+<div id="feedbackModal" style="
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: #d38a8a;
+  padding: 20px;
+  border-radius: 12px;
+  width: 280px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  font-family: 'Segoe UI', sans-serif;
+">
+  <h4 style="margin: 0 0 12px; font-size: 16px; color: #4B0082;">We value your feedback</h4>
+
+  <textarea id="feedbackText" placeholder="Your feedback..." rows="4" style="
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    resize: vertical;
+    font-size: 14px;
+    font-family: inherit;
+  "></textarea>
+
+  <input type="text" id="feedbackName" placeholder="Your name (optional)" style="
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+  ">
+
+  <input type="email" id="feedbackEmail" placeholder="Your email (optional)" style="
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+  ">
+
+  <button onclick="submitFeedback()" style="
+    margin-top: 14px;
+    background: #4B0082;
+    color: white;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  ">
+    Submit Feedback
+  </button>
 </div>
 
 
+
 <script>
-const formspreeEndpoint = "https://formspree.io/f/mgvzarvk"; // Replace with your Formspree endpoint
+  const formspreeEndpoint = "https://formspree.io/f/mgvzarvk";
 
-document.getElementById('feedbackBtn').addEventListener('click', () => {
-  const modal = document.getElementById('feedbackModal');
-  modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
-});
-
-function submitFeedback() {
-  const message = document.getElementById('feedbackText').value.trim();
-  const email = document.getElementById('feedbackEmail').value.trim();
-  if (!message) {
-    alert("Feedback cannot be empty.");
-    return;
+  function showToast(message = "Feedback sent successfully!", color = "#28a745") {
+    const toast = document.createElement("div");
+    toast.innerText = message;
+    toast.style = `
+      position: fixed;
+      bottom: 100px;
+      right: 20px;
+      background: ${color};
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 2000;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
   }
 
-  const feedback = { message, email, timestamp: new Date().toISOString() };
+  async function submitFeedback() {
+    const message = document.getElementById('feedbackText').value.trim();
+    const name = document.getElementById('feedbackName').value.trim();
+    const email = document.getElementById('feedbackEmail').value.trim();
 
-  if (!navigator.onLine) {
-    const pending = JSON.parse(localStorage.getItem('offlineFeedback') || '[]');
-    pending.push(feedback);
-    localStorage.setItem('offlineFeedback', JSON.stringify(pending));
-    alert("You're offline. Feedback saved and will be sent when you're back online.");
-  } else {
-    sendToFormspree(feedback);
-  }
-
-  // Reset form
-  document.getElementById('feedbackText').value = '';
-  document.getElementById('feedbackEmail').value = '';
-  document.getElementById('feedbackModal').style.display = 'none';
-}
-
-function sendToFormspree(feedback) {
-  fetch(formspreeEndpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: feedback.message,
-      email: feedback.email || "anonymous",
-      timestamp: feedback.timestamp
-    })
-  }).then(res => {
-    if (res.ok) {
-      showToast(); // ✅ success
-    } else {
-      const pending = JSON.parse(localStorage.getItem('offlineFeedback') || '[]');
-      pending.push(feedback);
-      localStorage.setItem('offlineFeedback', JSON.stringify(pending));
-      showToast("Unable to send feedback. Saved locally.", "#ffc107");
+    if (!message) {
+      alert("Feedback cannot be empty.");
+      return;
     }
-  }).catch(() => {
-    const pending = JSON.parse(localStorage.getItem('offlineFeedback') || '[]');
-    pending.push(feedback);
-    localStorage.setItem('offlineFeedback', JSON.stringify(pending));
-    showToast("Offline. Feedback saved for later.", "#ffc107");
-  });
-}
 
-window.addEventListener('online', () => {
-  const offlineData = JSON.parse(localStorage.getItem('offlineFeedback') || '[]');
-  if (offlineData.length > 0) {
-    offlineData.forEach(sendToFormspree);
-    localStorage.removeItem('offlineFeedback');
-    showToast("Offline feedback sent!", "#17a2b8");
+
+
+    const feedback = {
+      message,
+      name: name || "anonymous",
+      email: email || "anonymous@example.com",
+    };
+
+    try {
+      const response = await fetch(formspreeEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feedback)
+      });
+
+      if (response.ok) {
+        showToast("Feedback sent successfully!", "#28a745");
+      } else {
+        showToast("Submission failed. Please try again later.", "#dc3545");
+      }
+    } catch (error) {
+      showToast("Network error. Please check your connection.", "#dc3545");
+    }
+
+    document.getElementById('feedbackText').value = '';
+    document.getElementById('feedbackName').value = '';
+    document.getElementById('feedbackEmail').value = '';
+    document.getElementById('feedbackModal').style.display = 'none';
   }
-});
 
-function showToast(message = "Feedback sent successfully!", color = "#28a745") {
-  const toast = document.getElementById("feedbackToast");
-  toast.textContent = message;
-  toast.style.backgroundColor = color;
-  toast.style.display = "block";
-
-  setTimeout(() => {
-    toast.style.display = "none";
-  }, 3000);
+function toggleFeedback() {
+  const modal = document.getElementById('feedbackModal');
+  if (modal.style.display === 'none' || modal.style.display === '') {
+    modal.style.display = 'block';
+  } else {
+    modal.style.display = 'none';
+  }
 }
 
 </script>
+
 <div id="feedbackToast" style="
   position: fixed;
   bottom: 20px;
