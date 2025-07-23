@@ -1013,7 +1013,7 @@ if ('serviceWorker' in navigator) {
   position: fixed;
   bottom: 80px;
   right: 20px;
-  background: #4B0082;
+  background: #04924b;
   color: white;
   border: none;
   border-radius: 30px;
@@ -1031,67 +1031,73 @@ if ('serviceWorker' in navigator) {
 
 
 <!-- Feedback Modal -->
-<div id="feedbackModal" style="
-  display: none;
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
-  background: #d38a8a;
-  padding: 20px;
-  border-radius: 12px;
-  width: 280px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  font-family: 'Segoe UI', sans-serif;
-">
-  <h4 style="margin: 0 0 12px; font-size: 16px; color: #4B0082;">We value your feedback</h4>
-
-  <textarea id="feedbackText" placeholder="Your feedback..." rows="4" style="
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    resize: vertical;
-    font-size: 14px;
-    font-family: inherit;
-  "></textarea>
-
-  <input type="text" id="feedbackName" placeholder="Your name (optional)" style="
-    margin-top: 10px;
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    font-family: inherit;
+<!-- Overlay Container -->
+<div id="feedbackOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.3); z-index: 999;" onclick="hideFeedbackIfClickedOutside(event)">
+  
+  <!-- Actual Modal -->
+  <div id="feedbackModal" style="
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 280px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    font-family: 'Segoe UI', sans-serif;
+    z-index: 1001;
   ">
+    <h4 style="margin: 0 0 12px; font-size: 16px; color: #4B0082;">We value your feedback</h4>
 
-  <input type="email" id="feedbackEmail" placeholder="Your email (optional)" style="
-    margin-top: 10px;
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    font-family: inherit;
-  ">
+    <textarea id="feedbackText" placeholder="Your feedback..." rows="4" style="
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      font-size: 14px;
+      font-family: inherit;
+    "></textarea>
 
-  <button onclick="submitFeedback()" style="
-    margin-top: 14px;
-    background: #4B0082;
-    color: white;
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  ">
-    Submit Feedback
-  </button>
+    <input type="text" id="feedbackName" placeholder="Your name (optional)" style="
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    ">
+
+    <input type="email" id="feedbackEmail" placeholder="Your email (optional)" style="
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    ">
+
+    <button onclick="submitFeedback()" style="
+      margin-top: 14px;
+      background: #4B0082;
+      color: white;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    ">
+      Submit Feedback
+    </button>
+  </div>
 </div>
+
 
 
 
@@ -1157,13 +1163,17 @@ if ('serviceWorker' in navigator) {
   }
 
 function toggleFeedback() {
+  const overlay = document.getElementById('feedbackOverlay');
+  overlay.style.display = (overlay.style.display === 'none' || overlay.style.display === '') ? 'block' : 'none';
+}
+
+function hideFeedbackIfClickedOutside(event) {
   const modal = document.getElementById('feedbackModal');
-  if (modal.style.display === 'none' || modal.style.display === '') {
-    modal.style.display = 'block';
-  } else {
-    modal.style.display = 'none';
+  if (!modal.contains(event.target)) {
+    document.getElementById('feedbackOverlay').style.display = 'none';
   }
 }
+
 
 </script>
 
