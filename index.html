@@ -396,15 +396,15 @@ function convertARCtoITRF() {
 
   // Reference ARC points with their respective shifts
   const referenceOffsets = [
-    { E: 600000, N: 80000, eAdd: -84.178, nAdd: 296.226 },
-    { E: 620000, N: 90000, eAdd: -84.104, nAdd: 296.369 },
-    { E: 630000, N: 100000, eAdd: -84.050, nAdd: 296.508 },
-    { E: 640000, N: 110000, eAdd: -83.987, nAdd: 296.654 },
-    { E: 650000, N: 120000, eAdd: -83.915, nAdd: 296.804 },
-    { E: 660000, N: 130000, eAdd: -83.833, nAdd: 296.957 },
-    { E: 680000, N: 150000, eAdd: -83.640, nAdd: 297.266 },
-    { E: 680000, N: 160000, eAdd: -83.584, nAdd: 297.313 },
-    { E: 680000, N: 180000, eAdd: -83.464, nAdd: 297.356 },
+    { E: 600000, N: 80000, eAdd: 84.178, nAdd: -296.226 },
+    { E: 620000, N: 90000, eAdd: 84.104, nAdd: -296.369 },
+    { E: 630000, N: 100000, eAdd: 84.050, nAdd: -296.508 },
+    { E: 640000, N: 110000, eAdd: 83.987, nAdd: -296.654 },
+    { E: 650000, N: 120000, eAdd: 83.915, nAdd: -296.804 },
+    { E: 660000, N: 130000, eAdd: 83.833, nAdd: -296.957 },
+    { E: 680000, N: 150000, eAdd: 83.640, nAdd: -297.266 },
+    { E: 680000, N: 160000, eAdd: 83.584, nAdd: -297.313 },
+    { E: 680000, N: 180000, eAdd: 83.464, nAdd: -297.356 },
   ];
 
   // Find the nearest reference point using Euclidean distance
@@ -605,15 +605,15 @@ function processARCtoITRF() {
 
   // Reference ARC values and their respective E+ / N+ shifts
   const referenceOffsets = [
-    { E: 600000, N: 80000, eAdd: -84.178, nAdd: 296.226 },
-    { E: 620000, N: 90000, eAdd: -84.104, nAdd: 296.369 },
-    { E: 630000, N: 100000, eAdd: -84.050, nAdd: 296.508 },
-    { E: 640000, N: 110000, eAdd: -83.987, nAdd: 296.654 },
-    { E: 650000, N: 120000, eAdd: -83.915, nAdd: 296.804 },
-    { E: 660000, N: 130000, eAdd: -83.833, nAdd: 296.957 },
-    { E: 680000, N: 150000, eAdd: -83.640, nAdd: 297.266 },
-    { E: 680000, N: 160000, eAdd: -83.584, nAdd: 297.313 },
-    { E: 680000, N: 180000, eAdd: -83.464, nAdd: 297.356 },
+    { E: 600000, N: 80000, eAdd: 84.178, nAdd: -296.226 },
+    { E: 620000, N: 90000, eAdd: 84.104, nAdd: -296.369 },
+    { E: 630000, N: 100000, eAdd: 84.050, nAdd: -296.508 },
+    { E: 640000, N: 110000, eAdd: 83.987, nAdd: -296.654 },
+    { E: 650000, N: 120000, eAdd: 83.915, nAdd: -296.804 },
+    { E: 660000, N: 130000, eAdd: 83.833, nAdd: -296.957 },
+    { E: 680000, N: 150000, eAdd: 83.640, nAdd: -297.266 },
+    { E: 680000, N: 160000, eAdd: 83.584, nAdd: -297.313 },
+    { E: 680000, N: 180000, eAdd: 83.464, nAdd: -297.356 },
   ];
 
   const reader = new FileReader();
