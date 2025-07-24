@@ -1009,7 +1009,7 @@ if ('serviceWorker' in navigator) {
   });
 </script>
 <!-- Feedback Button -->
-<button onclick="toggleFeedback()" style="
+<button id="toggleFeedbackBtn" onclick="toggleFeedback()" style="
   position: fixed;
   bottom: 80px;
   right: 20px;
@@ -1072,7 +1072,7 @@ if ('serviceWorker' in navigator) {
 
 
 
-    <button onclick="submitFeedback()" style="
+    <button id="submitFeedbackBtn" onclick="submitFeedback()" style="
       margin-top: 14px;
       background: #4B0082;
       color: white;
@@ -1114,50 +1114,75 @@ if ('serviceWorker' in navigator) {
     setTimeout(() => toast.remove(), 4000);
   }
 
-  async function submitFeedback() {
-    const message = document.getElementById('feedbackText').value.trim();
-    const name = document.getElementById('feedbackName').value.trim();
-  
+async function submitFeedback() {
+  const message = document.getElementById('feedbackText').value.trim();
+  const name = document.getElementById('feedbackName').value.trim();
+  const submitBtn = document.getElementById('submitFeedbackBtn');  // New
 
-    if (!message) {
-      alert("Feedback cannot be empty.");
-      return;
-    }
-
-
-
-    const feedback = {
-      message,
-      name: name || "anonymous",
-  
-    };
-
-    try {
-      const response = await fetch(formspreeEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feedback)
-      });
-
-      if (response.ok) {
-        showToast("Feedback sent successfully!", "#28a745");
-      } else {
-        showToast("Submission failed. Please try again later.", "#dc3545");
-      }
-    } catch (error) {
-      showToast("Network error. Please check your connection.", "#dc3545");
-    }
-
-    document.getElementById('feedbackText').value = '';
-    document.getElementById('feedbackName').value = '';
-
-    document.getElementById('feedbackModal').style.display = 'none';
+  if (!message) {
+    alert("Feedback cannot be empty.");
+    return;
   }
 
-function toggleFeedback() {
-  const overlay = document.getElementById('feedbackOverlay');
-  overlay.style.display = (overlay.style.display === 'none' || overlay.style.display === '') ? 'block' : 'none';
+  // 🔄 Show loading state
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = "Submitting...";
+  submitBtn.disabled = true;
+
+  const feedback = {
+    message,
+    name: name || "anonymous"
+  };
+
+  try {
+    const response = await fetch(formspreeEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(feedback)
+    });
+
+    if (response.ok) {
+      showToast("Feedback sent successfully!", "#28a745");
+    } else {
+      showToast("Submission failed. Please try again later.", "#dc3545");
+    }
+  } catch (error) {
+    showToast("Network error. Please check your connection.", "#dc3545");
+  }
+
+  // Reset input fields
+  document.getElementById('feedbackText').value = '';
+  document.getElementById('feedbackName').value = '';
+
+  // Hide entire feedback overlay/modal
+  document.getElementById('feedbackOverlay').style.display = 'none';
+
+  // Restore button
+  submitBtn.textContent = originalText;
+  submitBtn.disabled = false;
+
 }
+
+
+function toggleFeedback() {
+  const button = document.getElementById('toggleFeedbackBtn');
+  const overlay = document.getElementById('feedbackOverlay');
+
+  // Show loading state
+  const originalText = button.textContent;
+  button.textContent = 'Opening...';
+  button.disabled = true;
+
+  setTimeout(() => {
+    // Toggle the modal display
+    overlay.style.display = (overlay.style.display === 'none' || overlay.style.display === '') ? 'block' : 'none';
+
+    // Restore button
+    button.textContent = originalText;
+    button.disabled = false;
+  }, 500); // You can adjust this duration for visual effect
+}
+
 
 function hideFeedbackIfClickedOutside(event) {
   const modal = document.getElementById('feedbackModal');
