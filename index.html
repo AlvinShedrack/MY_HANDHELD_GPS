@@ -11,15 +11,15 @@
     .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; width: 320px; }
     .grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
     label { font-size: .9rem; color: #374151; display: block; margin-bottom: 4px; }
-    input, button { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #d1d5db; }
-    input:focus, button:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+    input, button, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #d1d5db; }
+    input:focus, button:focus, textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
     .status { text-align: center; margin-top: 12px; padding: 8px 0; }
     .result-box { background: #f3f4f6; padding: 8px 12px; border-radius: 8px; margin-top: 12px; }
     .copyable { cursor: pointer; color: blue; }
     .btn { cursor: pointer; border: 1px solid #d1d5db; background: #111827; color: #fff; }
     .btn.green { background-color: #4caf50; color: white; padding: 15px; border-radius: 50%; margin: 20px auto; font-size: 16px; }
     .btn.secondary { background: #f3f4f6; color: #111827; }
-    .circular-button { border-radius: 50%; width: 80px; height: 80px; background-color: #4caf50; color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; }
+    .circular-button { border-radius: 50%; width: 80px; height: 80px; background-color: #f3f4f6; color: black; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; }
     .csv-box { margin-top: 20px; }
     .error { color: red; }
   </style>
@@ -29,6 +29,11 @@
 
   <div class="card">
     <div class="grid">
+      <div>
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="Enter description" rows="3"></textarea>
+      </div>
+
       <div>
         <label for="northing">Dynamic Northing (N)</label>
         <input id="northing" type="number" step="0.000001" placeholder="Northing" readonly />
@@ -128,6 +133,14 @@
         <p><strong>UTM Northing:</strong> ${result.northing}</p>
         <p><strong>Height (m):</strong> ${height}</p>
       `;
+
+      // Change button color if accuracy < 10m
+      if (c.accuracy < 10) {
+        document.getElementById('pick-btn').style.backgroundColor = '#4caf50'; // Green color
+      } else {
+        document.getElementById('pick-btn').style.backgroundColor = '#f3f4f6'; // Default gray color
+      }
+
       document.getElementById('status').textContent = 'Fix OK';
     }
 
@@ -160,6 +173,7 @@
       const easting = document.getElementById('easting').value;
       const height = document.getElementById('height').value;
       const accuracy = document.getElementById('accuracy').value;
+      const description = document.getElementById('description').value;
 
       if (northing && easting && height && accuracy) {
         storedCoordinates.push({
@@ -167,6 +181,7 @@
           easting: easting,
           height: height,
           accuracy: accuracy,
+          description: description,
           timestamp: new Date().toISOString()
         });
         alert('Coordinates stored!');
@@ -182,9 +197,9 @@
         return;
       }
 
-      let csvContent = 'Northing,Easting,Height,Accuracy,Timestamp\n';
+      let csvContent = 'Northing,Easting,Height,Accuracy,Description,Timestamp\n';
       storedCoordinates.forEach(function(coord) {
-        csvContent += `${coord.northing},${coord.easting},${coord.height},${coord.accuracy},${coord.timestamp}\n`;
+        csvContent += `${coord.northing},${coord.easting},${coord.height},${coord.accuracy},${coord.description},${coord.timestamp}\n`;
       });
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
