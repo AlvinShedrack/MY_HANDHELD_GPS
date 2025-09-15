@@ -146,8 +146,10 @@
         document.getElementById('pick-btn').style.backgroundColor = '#FF5733'; // Dark orange button
         document.getElementById('pick-btn').style.color = '#800080'; // Purple text color for "PICK"
       } else {
-        document.body.style.backgroundColor = '#F9FAFB'; // Default background color
-        document.getElementById('pick-btn').style.backgroundColor = '#f3f4f6'; // Default gray button
+        // New condition: accuracy more than 31m
+        document.body.style.backgroundColor = '#2196F3'; // Blue background
+        document.getElementById('pick-btn').style.backgroundColor = '#9e9e9e'; // Grey button
+        document.getElementById('pick-btn').style.color = '#000000'; // Black text color for "PICK"
       }
 
       document.getElementById('status').textContent = 'GPS Tracking';
