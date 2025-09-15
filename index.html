@@ -9,9 +9,8 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       --primary-color: #00B0FF; /* Bright blue */
       --secondary-color: #FF4081; /* Vibrant pink */
-      --green-color: #4CAF50; /* Normal green */
-      --purple-color: #800080; /* Purple for "Pick" text */
-      --orange-color: #FFA500; /* Orange */
+      --green-color: #4CAF50;
+      --orange-color: #FFA500;
       --border-color: #ddd;
       --dark-gray: #333;
       --light-gray: #f0f0f0;
@@ -20,7 +19,6 @@
       --button-hover-color: #4E91F2; /* Hover color for buttons */
       --gradient-start: #FF8A00; /* Gradient for button */
       --gradient-end: #FF4B2B;
-      --light-green-bg: #d4f1d4; /* Light green background for accuracy below 11m */
     }
 
     body {
@@ -183,16 +181,16 @@
 
   <div class="card">
     <div class="grid">
+      <div>
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="Enter description" rows="3"></textarea>
+      </div>
+
       <!-- Added Accuracy Field -->
       <div>
         <label for="accuracy">Accuracy (m)</label>
         <input id="accuracy" type="number" step="0.1" placeholder="Accuracy" readonly />
-      </div>      
-      <div>
-        <label for="description">Description</label>
-        <textarea id="description" placeholder="Enter description" rows="3" maxlength="10"></textarea>
       </div>
-      <!-- Circular Button to Pick Coordinates -->
 
       <div class="status" id="status">
         <span class="pill">Waiting for GPS fix...</span>
@@ -202,9 +200,8 @@
         <!-- Display the result here -->
       </div>
 
-      <div class="circular-button" id="pick-btn">PICK</div>
-
-
+      <!-- Circular Button to Pick Coordinates -->
+      <div class="circular-button" id="pick-btn">📍</div>
 
       <!-- Download CSV Button -->
       <button class="btn secondary" id="download-btn">Download CSV</button>
@@ -215,7 +212,6 @@
 
   <script>
     const storedCoordinates = [];
-    let descriptionCount = 1; // Variable to track the description number
 
     function ddToUTM(lat, lon) {
       const a = 6378137.0;
@@ -278,8 +274,8 @@
 
       // Change background color based on accuracy
       if (accuracy < 11) {
-        document.body.style.backgroundColor = '#d4f1d4'; // Light green color for below 11m accuracy
-        document.getElementById('pick-btn').style.backgroundColor = '#4CAF50'; // Green button color
+        document.body.style.backgroundColor = '#4CAF50'; // Green color for below 10m accuracy
+        document.getElementById('pick-btn').style.backgroundColor = '#4caf50'; // Green button color
       } else if (accuracy < 31) {
         document.body.style.backgroundColor = '#FFA500'; // Orange color for below 30m accuracy
         document.getElementById('pick-btn').style.backgroundColor = '#FFA500'; // Orange button color
@@ -326,11 +322,6 @@
           accuracy: accuracy,
           timestamp: new Date().toISOString()
         });
-
-        // Auto increment description to A2, A3, etc.
-        let nextDescription = `A${descriptionCount++}`;
-        document.getElementById('description').value = nextDescription;
-
         alert('Coordinates stored!');
       } else {
         alert('Please wait for a valid GPS fix.');
