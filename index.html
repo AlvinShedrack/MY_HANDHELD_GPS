@@ -32,6 +32,11 @@
     .circular-button { border-radius: 50%; width: 80px; height: 80px; background-color: #f3f4f6; color: black; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; }
     .csv-box { margin-top: 20px; }
     .error { color: red; }
+
+    /* Hide the Northing, Easting, and Height fields */
+    .hidden-fields {
+      display: none; /* Hide these fields from the UI but keep them in the HTML */
+    }
   </style>
 </head>
 <body>
@@ -51,16 +56,16 @@
       <!-- Circular Button to Pick Coordinates -->
       <div class="circular-button" id="pick-btn">PICK</div>
 
-      <!-- Dynamic Fields for Northing, Easting, and Height -->
-      <div>
+      <!-- Hidden Dynamic Fields for Northing, Easting, and Height -->
+      <div class="hidden-fields">
         <label for="northing">Northing (N)</label>
         <input id="northing" type="number" step="0.000001" placeholder="Northing" readonly />
       </div>
-      <div>
+      <div class="hidden-fields">
         <label for="easting">Easting (E)</label>
         <input id="easting" type="number" step="0.000001" placeholder="Easting" readonly />
       </div>
-      <div>
+      <div class="hidden-fields">
         <label for="height">Height (m)</label>
         <input id="height" type="number" step="0.1" placeholder="Height (m)" readonly />
       </div>
@@ -209,9 +214,9 @@
         storedCoordinates.push({
           description: description,
           accuracy: accuracy,
-          northing: document.getElementById('northing').value,
-          easting: document.getElementById('easting').value,
-          height: document.getElementById('height').value,
+          northing: document.getElementById('northing').value, // Hidden but included in the data
+          easting: document.getElementById('easting').value,   // Hidden but included in the data
+          height: document.getElementById('height').value,     // Hidden but included in the data
           timestamp: new Date().toISOString()
         });
 
