@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>my HandHeld GPS</title>
+  <title>My HandHeld GPS</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; }
@@ -33,26 +33,29 @@
         <label for="accuracy">Accuracy (m)</label>
         <input id="accuracy" type="number" step="0.1" placeholder="Accuracy" readonly />
       </div>
+
+      <!-- Description Field (incremental A1, A2, etc.) -->
       <div>
         <label for="description">Description</label>
-        <textarea id="description" placeholder="Enter description" rows="3"></textarea>
+        <textarea id="description" placeholder="Enter description" rows="1" maxlength="10" readonly></textarea>
       </div>
-            <!-- Circular Button to Pick Coordinates -->
+
+      <!-- Circular Button to Pick Coordinates -->
       <div class="circular-button" id="pick-btn">📍</div>
 
-      <div>
+      <!-- Dynamic Fields are now hidden -->
+      <div style="display:none;">
         <label for="northing">Dynamic Northing (N)</label>
         <input id="northing" type="number" step="0.000001" placeholder="Northing" readonly />
       </div>
-      <div>
+      <div style="display:none;">
         <label for="easting">Dynamic Easting (E)</label>
         <input id="easting" type="number" step="0.000001" placeholder="Easting" readonly />
       </div>
-      <div>
+      <div style="display:none;">
         <label for="height">Dynamic Height (m)</label>
         <input id="height" type="number" step="0.1" placeholder="Height (m)" readonly />
       </div>
-
 
       <div class="status">
         <span id="status" class="pill">Waiting for GPS fix...</span>
@@ -61,8 +64,6 @@
       <div class="result-box" id="result-box">
         <!-- Display the result here -->
       </div>
-
-
 
       <!-- Download CSV Button -->
       <button class="btn secondary" id="download-btn">Download CSV</button>
@@ -73,6 +74,7 @@
 
   <script>
     const storedCoordinates = [];
+    let descriptionCount = 1; // Incremental counter for description
 
     function ddToUTM(lat, lon) {
       const a = 6378137.0;
@@ -115,20 +117,15 @@
 
     function handleGeoSuccess(pos) {
       const c = pos.coords;
-      console.log('Geolocation Success:', c); // Log for debugging
+      console.log('Geolocation Success:', c);
 
-      // Check if altitude is available, if not set to N/A
       const height = (c.altitude !== null && c.altitude !== undefined) ? c.altitude : 'N/A';
 
-      // Convert latitude and longitude to UTM
       const result = ddToUTM(c.latitude, c.longitude);
 
-      // Update display fields with UTM values
-      document.getElementById('northing').value = result.northing;
-      document.getElementById('easting').value = result.easting;
-      document.getElementById('height').value = height;
-      document.getElementById('accuracy').value = c.accuracy;
+      const accuracy = c.accuracy;
 
+      document.getElementById('accuracy').value = accuracy.toFixed(0);
       document.getElementById('result-box').innerHTML = `
 
         <p><strong>UTM Easting:</strong> ${result.easting}</p>
@@ -137,11 +134,18 @@
         <p><strong>Zone:</strong> ${result.zone}</p>
       `;
 
-      // Change button color if accuracy < 10m
-      if (c.accuracy < 10) {
-        document.getElementById('pick-btn').style.backgroundColor = '#4caf50'; // Green color
+      // Change background color based on accuracy
+      if (accuracy < 10) {
+        document.body.style.backgroundColor = '#d4f1d4'; // Light green color
+        document.getElementById('pick-btn').style.backgroundColor = '#4CAF50'; // Green button
+        document.getElementById('pick-btn').style.color = '#800080'; // Purple text color for "PICK"
+      } else if (accuracy < 31) {
+        document.body.style.backgroundColor = '#FFA500'; // Orange color
+        document.getElementById('pick-btn').style.backgroundColor = '#FFA500'; // Orange button
+        document.getElementById('pick-btn').style.color = '#800080'; // Purple text color for "PICK"
       } else {
-        document.getElementById('pick-btn').style.backgroundColor = '#f3f4f6'; // Default gray color
+        document.body.style.backgroundColor = '#F9FAFB'; // Default background color
+        document.getElementById('pick-btn').style.backgroundColor = '#f3f4f6'; // Default gray button
       }
 
       document.getElementById('status').textContent = 'Fix OK';
@@ -154,7 +158,6 @@
         3: 'Timeout. Try again.'
       };
       document.getElementById('status').textContent = errorMsg[err.code] || 'Geolocation error.';
-      document.getElementById('error-message').textContent = errorMsg[err.code] || 'Geolocation error.';
     }
 
     // Start tracking location automatically on load
@@ -172,19 +175,15 @@
 
     // Store coordinates when pick button is clicked
     document.getElementById('pick-btn').addEventListener('click', function() {
-      const northing = document.getElementById('northing').value;
-      const easting = document.getElementById('easting').value;
-      const height = document.getElementById('height').value;
-      const accuracy = document.getElementById('accuracy').value;
-      const description = document.getElementById('description').value;
+      const description = `A${descriptionCount++}`; // Incremental description A1, A2, A3, etc.
+      document.getElementById('description').value = description; // Update the description field
 
-      if (northing && easting && height && accuracy) {
+      const accuracy = document.getElementById('accuracy').value;
+
+      if (accuracy) {
         storedCoordinates.push({
-          northing: northing,
-          easting: easting,
-          height: height,
-          accuracy: accuracy,
           description: description,
+          accuracy: accuracy,
           timestamp: new Date().toISOString()
         });
         alert('Coordinates stored!');
@@ -200,9 +199,9 @@
         return;
       }
 
-      let csvContent = 'Northing,Easting,Height,Accuracy,Description,Timestamp\n';
+      let csvContent = 'Description,Accuracy,Timestamp\n';
       storedCoordinates.forEach(function(coord) {
-        csvContent += `${coord.northing},${coord.easting},${coord.height},${coord.accuracy},${coord.description},${coord.timestamp}\n`;
+        csvContent += `${coord.description},${coord.accuracy},${coord.timestamp}\n`;
       });
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
