@@ -1,6 +1,6 @@
 {
-  "name": "Coordinate Converter",
-  "short_name": "Converter",
+  "name": "MY HANDHELD GPS",
+  "short_name": "Handheld",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
