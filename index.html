@@ -123,16 +123,18 @@
 
       const accuracy = c.accuracy;
 
+      // Set the height and round to 3 decimal places
+      document.getElementById('height').value = parseFloat(height).toFixed(3); // Rounded to 3 decimal places
       document.getElementById('accuracy').value = accuracy.toFixed(0);
       document.getElementById('result-box').innerHTML = `
 
         <p><strong>UTM Easting:</strong> ${result.easting}</p>
         <p><strong>UTM Northing:</strong> ${result.northing}</p>
-        <p><strong>Height (m):</strong> ${height}</p>
+        <p><strong>Height (m):</strong> ${parseFloat(height).toFixed(3)}</p>
         <p><strong>Zone:</strong> ${result.zone}</p>
       `;
 
-      // Change background color based on accuracy
+      // Change background color and button color based on accuracy
       if (accuracy < 5) {
         document.body.style.backgroundColor = '#d4f1d4'; // Light green color
         document.getElementById('pick-btn').style.backgroundColor = '#4CAF50'; // Dark green button
@@ -182,6 +184,9 @@
         storedCoordinates.push({
           description: description,
           accuracy: accuracy,
+          northing: document.getElementById('northing').value,
+          easting: document.getElementById('easting').value,
+          height: document.getElementById('height').value,
           timestamp: new Date().toISOString()
         });
         alert('Coordinates stored!');
@@ -197,9 +202,9 @@
         return;
       }
 
-      let csvContent = 'Description,Accuracy,Timestamp\n';
+      let csvContent = 'Description,Accuracy,Northing,Easting,Height,Timestamp\n';
       storedCoordinates.forEach(function(coord) {
-        csvContent += `${coord.description},${coord.accuracy},${coord.timestamp}\n`;
+        csvContent += `${coord.description},${coord.accuracy},${coord.northing},${coord.easting},${coord.height},${coord.timestamp}\n`;
       });
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
