@@ -83,7 +83,7 @@
     }
 
     textarea {
-      resize: vertical;
+      resize: none; /* Ensure the textarea doesn't expand */
     }
 
     .status {
@@ -137,7 +137,7 @@
     .circular-button {
       width: 90px;
       height: 90px;
-      border-radius: 50%;
+      border-radius: 60%;
       background-color: var(--green-color);
       color: white;
       font-size: 36px;
@@ -187,7 +187,7 @@
       <!-- Description Field -->
       <div>
         <label for="description">Description</label>
-        <textarea id="description" placeholder="Enter description" rows="3" maxlength="10"></textarea>
+        <textarea id="description" placeholder="Enter description" rows="1" maxlength="10"></textarea>
       </div>
 
       <!-- Pick Button -->
@@ -262,11 +262,11 @@
       const accuracy = c.accuracy;
 
       document.getElementById('accuracy').value = accuracy.toFixed(0);
-      document.getElementById('result-box').innerHTML = `
-        <p><strong>Zone:</strong> ${result.zone}</p>
+      document.getElementById('result-box').innerHTML = `        
         <p><strong>UTM Easting:</strong> ${result.easting}</p>
         <p><strong>UTM Northing:</strong> ${result.northing}</p>
         <p><strong>Height (m):</strong> ${parseFloat(height).toFixed(3)}</p>
+        <p><strong>Zone:</strong> ${result.zone}</p>
         <p><strong>Accuracy (m):</strong> ${accuracy.toFixed(0)}</p>
       `;
 
