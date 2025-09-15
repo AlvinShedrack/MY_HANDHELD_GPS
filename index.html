@@ -45,8 +45,8 @@
   <div class="card">
     <div class="grid">
       <div>
-  <label for="accuracy" style="font-size: 18px; font-weight: bold;">Accuracy (m)</label>
-<input id="accuracy" type="number" step="0.1" placeholder="Accuracy" readonly style="font-size: 16px; font-weight: bold;" />
+        <label for="accuracy" style="font-size: 18px; font-weight: bold;">Accuracy (m)</label>
+        <input id="accuracy" type="number" step="0.1" placeholder="Accuracy" readonly style="font-size: 16px; font-weight: bold;" />
       </div>
       <div>
         <label for="description">Description</label>
@@ -253,14 +253,16 @@
   window.addEventListener('beforeunload', function (event) {
     if (storedCoordinates.length > 0) {
       const message = "You have unsaved coordinates. Do you want to download the CSV before leaving?";
-      event.returnValue = message; // Standard for most browsers
-      return message; // For some browsers like Chrome
+      if (!confirm(message)) {
+        event.returnValue = false; // Cancel the action if they press "Cancel"
+        return false; // Prevent the refresh/navigate away action
+      }
     }
   });
 
   // Start tracking when the page loads
   startTracking();
 </script>
-
 </body>
 </html>
+
