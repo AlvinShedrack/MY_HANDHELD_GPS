@@ -39,7 +39,7 @@
       </div>
 
       <!-- Circular Button to Pick Coordinates -->
-      <div class="circular-button" id="pick-btn">📍</div>
+      <div class="circular-button" id="pick-btn">PICK</div>
 
       <!-- Dynamic Fields are now hidden -->
       <div style="display:none;">
@@ -133,20 +133,20 @@
       `;
 
       // Change background color based on accuracy
-      if (accuracy < 10) {
+      if (accuracy < 5) {
         document.body.style.backgroundColor = '#d4f1d4'; // Light green color
-        document.getElementById('pick-btn').style.backgroundColor = '#4CAF50'; // Green button
+        document.getElementById('pick-btn').style.backgroundColor = '#4CAF50'; // Dark green button
         document.getElementById('pick-btn').style.color = '#800080'; // Purple text color for "PICK"
       } else if (accuracy < 31) {
-        document.body.style.backgroundColor = '#FFA500'; // Orange color
-        document.getElementById('pick-btn').style.backgroundColor = '#FFA500'; // Orange button
+        document.body.style.backgroundColor = '#FFA500'; // Light orange color
+        document.getElementById('pick-btn').style.backgroundColor = '#FF5733'; // Dark orange button
         document.getElementById('pick-btn').style.color = '#800080'; // Purple text color for "PICK"
       } else {
         document.body.style.backgroundColor = '#F9FAFB'; // Default background color
         document.getElementById('pick-btn').style.backgroundColor = '#f3f4f6'; // Default gray button
       }
 
-      document.getElementById('status').textContent = 'Fix OK';
+      document.getElementById('status').textContent = 'GPS Tracking';
     }
 
     function handleGeoError(err) {
