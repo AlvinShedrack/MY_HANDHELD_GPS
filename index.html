@@ -41,17 +41,17 @@
       <!-- Circular Button to Pick Coordinates -->
       <div class="circular-button" id="pick-btn">PICK</div>
 
-      <!-- Dynamic Fields are now hidden -->
-      <div style="display:none;">
-        <label for="northing">Dynamic Northing (N)</label>
+      <!-- Dynamic Fields for Northing, Easting, and Height -->
+      <div>
+        <label for="northing">Northing (N)</label>
         <input id="northing" type="number" step="0.000001" placeholder="Northing" readonly />
       </div>
-      <div style="display:none;">
-        <label for="easting">Dynamic Easting (E)</label>
+      <div>
+        <label for="easting">Easting (E)</label>
         <input id="easting" type="number" step="0.000001" placeholder="Easting" readonly />
       </div>
-      <div style="display:none;">
-        <label for="height">Dynamic Height (m)</label>
+      <div>
+        <label for="height">Height (m)</label>
         <input id="height" type="number" step="0.1" placeholder="Height (m)" readonly />
       </div>
 
@@ -126,8 +126,10 @@
       // Set the height and round to 3 decimal places
       document.getElementById('height').value = parseFloat(height).toFixed(3); // Rounded to 3 decimal places
       document.getElementById('accuracy').value = accuracy.toFixed(0);
-      document.getElementById('result-box').innerHTML = `
+      document.getElementById('northing').value = result.northing;
+      document.getElementById('easting').value = result.easting;
 
+      document.getElementById('result-box').innerHTML = `
         <p><strong>UTM Easting:</strong> ${result.easting}</p>
         <p><strong>UTM Northing:</strong> ${result.northing}</p>
         <p><strong>Height (m):</strong> ${parseFloat(height).toFixed(3)}</p>
@@ -222,4 +224,5 @@
   </script>
 </body>
 </html>
+
 
