@@ -11,8 +11,6 @@
     .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; width: 320px; }
     .grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
     label { font-size: .9rem; color: #374151; display: block; margin-bottom: 4px; }
-  
-    /* Reduced width for the input fields and textarea */
     input, button, textarea { 
       width: 80%; /* Reduced the width from 100% to 80% */
       padding: 10px 12px; 
@@ -85,6 +83,15 @@
   <script>
     const storedCoordinates = [];
     let descriptionCount = 1; // Incremental counter for description
+
+    // Check if vibration is supported and available
+    function vibrateDevice() {
+      if (navigator.vibrate) {
+        navigator.vibrate(100); // Vibrate for 100 milliseconds
+      } else {
+        console.log("Vibration is not supported on this device.");
+      }
+    }
 
     function ddToUTM(lat, lon) {
       const a = 6378137.0;
@@ -208,10 +215,8 @@
           timestamp: new Date().toISOString()
         });
 
-        // Trigger the vibration (100 milliseconds for a brief vibration)
-        if (navigator.vibrate) {
-          navigator.vibrate(100); // Vibrate for 100 milliseconds
-        }
+        // Trigger vibration on coordinate pick
+        vibrateDevice();
 
         alert('Coordinates stored!');
       } else {
