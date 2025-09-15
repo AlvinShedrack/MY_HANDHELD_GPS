@@ -9,9 +9,8 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       --primary-color: #00B0FF; /* Bright blue */
       --secondary-color: #FF4081; /* Vibrant pink */
-      --green-color: #4CAF50; /* Normal green */
-      --purple-color: #800080; /* Purple for "Pick" text */
-      --orange-color: #FFA500; /* Orange */
+      --green-color: #4CAF50;
+      --orange-color: #FFA500;
       --border-color: #ddd;
       --dark-gray: #333;
       --light-gray: #f0f0f0;
@@ -20,7 +19,6 @@
       --button-hover-color: #4E91F2; /* Hover color for buttons */
       --gradient-start: #FF8A00; /* Gradient for button */
       --gradient-end: #FF4B2B;
-      --light-green-bg: #d4f1d4; /* Light green background for accuracy below 11m */
     }
 
     body {
@@ -278,8 +276,8 @@
 
       // Change background color based on accuracy
       if (accuracy < 11) {
-        document.body.style.backgroundColor = '#d4f1d4'; // Light green color for below 11m accuracy
-        document.getElementById('pick-btn').style.backgroundColor = '#4CAF50'; // Green button color
+        document.body.style.backgroundColor = '#4CAF50'; // Green color for below 10m accuracy
+        document.getElementById('pick-btn').style.backgroundColor = '#4caf50'; // Green button color
       } else if (accuracy < 31) {
         document.body.style.backgroundColor = '#FFA500'; // Orange color for below 30m accuracy
         document.getElementById('pick-btn').style.backgroundColor = '#FFA500'; // Orange button color
