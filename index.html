@@ -11,8 +11,20 @@
     .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; width: 320px; }
     .grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
     label { font-size: .9rem; color: #374151; display: block; margin-bottom: 4px; }
-    input, button, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #d1d5db; }
-    input:focus, button:focus, textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  
+    /* Reduced width for the input fields and textarea */
+    input, button, textarea { 
+      width: 80%; /* Reduced the width from 100% to 80% */
+      padding: 10px 12px; 
+      border-radius: 10px; 
+      border: 1px solid #d1d5db; 
+    }
+    input:focus, button:focus, textarea:focus { 
+      outline: none; 
+      border-color: #6366f1; 
+      box-shadow: 0 0 0 3px rgba(99,102,241,.15); 
+    }
+
     .status { text-align: center; margin-top: 12px; padding: 8px 0; }
     .result-box { background: #f3f4f6; padding: 8px 12px; border-radius: 8px; margin-top: 12px; }
     .copyable { cursor: pointer; color: blue; }
@@ -151,7 +163,7 @@
         document.getElementById('pick-btn').style.color = '#000000'; // Black text color for "PICK"
       }
 
-      document.getElementById('status').textContent = 'GPS Tracking (Arc1960 36N)';
+      document.getElementById('status').textContent = 'GPS Tracking';
     }
 
     function handleGeoError(err) {
@@ -195,6 +207,12 @@
           height: document.getElementById('height').value,
           timestamp: new Date().toISOString()
         });
+
+        // Trigger the vibration (100 milliseconds for a brief vibration)
+        if (navigator.vibrate) {
+          navigator.vibrate(100); // Vibrate for 100 milliseconds
+        }
+
         alert('Coordinates stored!');
       } else {
         alert('Please wait for a valid GPS fix.');
