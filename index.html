@@ -249,14 +249,11 @@
     document.body.removeChild(a);
   });
 
-  // Function to handle the download prompt on page refresh
+  // Prevent refreshing or navigating away with unsaved data
   window.addEventListener('beforeunload', function (event) {
     if (storedCoordinates.length > 0) {
-      const message = "You have unsaved coordinates. Do you want to download the CSV before leaving?";
-      if (!confirm(message)) {
-        event.returnValue = false; // Cancel the action if they press "Cancel"
-        return false; // Prevent the refresh/navigate away action
-      }
+      event.preventDefault(); // Prevent the refresh or navigate away action
+      event.returnValue = ''; // Some browsers require this for the prompt to appear
     }
   });
 
@@ -265,4 +262,3 @@
 </script>
 </body>
 </html>
-
