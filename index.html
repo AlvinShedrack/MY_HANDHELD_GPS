@@ -45,8 +45,8 @@
   <div class="card">
     <div class="grid">
       <div>
-        <label for="accuracy">Accuracy (m)</label>
-        <input id="accuracy" type="number" step="0.1" placeholder="Accuracy" readonly />
+  <label for="accuracy" style="font-size: 18px; font-weight: bold;">Accuracy (m)</label>
+<input id="accuracy" type="number" step="0.1" placeholder="Accuracy" readonly style="font-size: 16px; font-weight: bold;" />
       </div>
       <div>
         <label for="description">Description</label>
@@ -121,11 +121,11 @@
                   - (35*Math.pow(e, 6)/3072) * Math.sin(6*phi));
 
       const easting = 500000 + k0 * n * (A + (1 - t + c) * Math.pow(A, 3)/6 +
-                        (5 - 18*t + t*t + 72*c - 58*(Math.pow(e, 2)/(1 - Math.pow(e, 2)))) * Math.pow(A, 5)/120);
+                        (5 - 18*t + t*t + 72*c - 58*(Math.pow(e, 2)/(1 - Math.pow(e, 2)))) * Math.pow(A, 5)/120)-83.86;
 
       const northing = k0 * (m + n * Math.tan(phi) * (Math.pow(A, 2)/2 +
                          (5 - t + 9*c + 4*c*c) * Math.pow(A, 4)/24 +
-                         (61 - 58*t + t*t + 600*c - 330*(Math.pow(e, 2)/(1 - Math.pow(e, 2)))) * Math.pow(A, 6)/720));
+                         (61 - 58*t + t*t + 600*c - 330*(Math.pow(e, 2)/(1 - Math.pow(e, 2)))) * Math.pow(A, 6)/720))+296.89;
 
       const northingAdjusted = lat < 0 ? northing + 10000000 : northing;
       const hemisphere = lat < 0 ? 'S' : 'N';
