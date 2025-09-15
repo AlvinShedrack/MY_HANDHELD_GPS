@@ -137,7 +137,7 @@
     .circular-button {
       width: 90px;
       height: 90px;
-      border-radius: 0%;
+      border-radius: 50%;
       background-color: var(--green-color);
       color: white;
       font-size: 36px;
@@ -263,11 +263,10 @@
 
       document.getElementById('accuracy').value = accuracy.toFixed(0);
       document.getElementById('result-box').innerHTML = `
-        
+        <p><strong>Zone:</strong> ${result.zone}</p>
         <p><strong>UTM Easting:</strong> ${result.easting}</p>
         <p><strong>UTM Northing:</strong> ${result.northing}</p>
         <p><strong>Height (m):</strong> ${parseFloat(height).toFixed(3)}</p>
-        <p><strong>Zone:</strong> ${result.zone}</p>
         <p><strong>Accuracy (m):</strong> ${accuracy.toFixed(0)}</p>
       `;
 
