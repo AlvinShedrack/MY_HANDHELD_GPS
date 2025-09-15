@@ -1,237 +1,73 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4B0082">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Coordinate Converter by Alvin Shedrack">
-  <link rel="apple-touch-icon" href="ICON.png">
-
-  <meta charset="UTF-8" />
-  <title>Coordinate Converter By Alvin Shedrack</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <title>Real-Time GPS Tracking → UTM Northing/Easting</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: #f5f7fa;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #4B0082;
-      color: white;
-      padding: 1rem 2rem;
-      text-align: center;
-      font-size: 1.8rem;
-      font-weight: bold;
-    }
-    .container {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 20px;
-    }
-    .converter {
-      background: rgb(75, 172, 218);
-      padding: 25px;
-      margin-bottom: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      border-top: 4px solid #4B0082;
-    }
-    h2 {
-      color: #4B0082;
-      margin-top: 0;
-    }
-    label {
-      font-weight: 500;
-      margin-top: 10px;
-      display: block;
-    }
-    input[type="number"], input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    .copyable {
-    cursor: pointer;
-    user-select: text;
-    }
-    .copyable:hover {
-    text-decoration: underline dotted;
-    }
-
-    .result-box {
-    padding: 10px;
-    border: 1px solid #007bff;
-    background-color: #f0f8ff;
-    border-radius: 5px;
-    max-width: 300px;
-    font-family: Arial, sans-serif;
-  }
-  .result-box p {
-      margin: 5px 0;
-  }
-    footer {
-      text-align: center;
-      margin: 20px 0;
-      font-size: 0.9rem;
-      color: #4B0082;
-      margin-top: 20px;
-    }
-    button {
-      background: #4B0082;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      margin-top: 15px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #5a00a3;
-    }
-    select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-}
-
-    .result {
-      margin-top: 15px;
-      font-weight: bold;
-      color: #6b0494d0;
-      font-size: 1rem;
-    }
-#toast {
-  visibility: hidden;
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -100%); /* Start above view */
-  background-color: #333;
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 5px;
-  font-size: 14px;
-  z-index: 9999;
-  opacity: 0;
-  transition: transform 0.4s ease, opacity 0.4s ease;
-}
-
-#toast.show {
-  visibility: visible;
-  transform: translate(-50%, 20px); /* Slide into view */
-  opacity: 1;
-}
-
-
+    :root { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 24px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    h1 { font-size: 1.25rem; margin: 0 0 12px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; width: 320px; }
+    .grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+    label { font-size: .9rem; color: #374151; display: block; margin-bottom: 4px; }
+    input, button { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #d1d5db; }
+    input:focus, button:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+    .status { text-align: center; margin-top: 12px; padding: 8px 0; }
+    .result-box { background: #f3f4f6; padding: 8px 12px; border-radius: 8px; margin-top: 12px; }
+    .copyable { cursor: pointer; color: blue; }
+    .btn { cursor: pointer; border: 1px solid #d1d5db; background: #111827; color: #fff; }
+    .btn.green { background-color: #4caf50; color: white; padding: 15px; border-radius: 50%; margin: 20px auto; font-size: 16px; }
+    .btn.secondary { background: #f3f4f6; color: #111827; }
+    .circular-button { border-radius: 50%; width: 80px; height: 80px; background-color: #4caf50; color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; }
+    .csv-box { margin-top: 20px; }
+    .error { color: red; }
   </style>
 </head>
 <body>
-  <div id="toast">Copied to clipboard</div>
-  <header>Coordinate Converter Tool</header>
-  <div class="container">
-  <h1>Coordinate Converter</h1>
+  <h1>Real-Time GPS Tracking → UTM Northing/Easting</h1>
 
-  <div class="converter">
-    <h2>Degrees to UTM(ITRF)</h2>
-    <label>Latitude:</label><input type="number" id="dd_lat" step="any">
-    <label>Longitude:</label><input type="number" id="dd_lon" step="any">
-    <button data-action="ddToUTM()">Convert</button>
-    <button id="mapBtn" type="button" onclick="searchLocation()">View in Google Maps</button>
-    <div class="result" id="dd_to_utm_result"></div>
-      <p>Upload a CSV with Lat and Lon columns:</p>
-      <input type="file" id="dd_to_utm_file" accept=".csv" />
-      <button data-action="processDDtoUTM()">Convert & Download</button>
-      <div class="result" id="dd_to_utm_status"></div>
-    
-  </div>
-<script>
-function searchLocation() {
-    const lat = document.getElementById('dd_lat').value;
-    const lng = document.getElementById('dd_lon').value;
-    const mapBtn = document.getElementById('mapBtn');
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label for="northing">Dynamic Northing (N)</label>
+        <input id="northing" type="number" step="0.000001" placeholder="Northing" readonly />
+      </div>
+      <div>
+        <label for="easting">Dynamic Easting (E)</label>
+        <input id="easting" type="number" step="0.000001" placeholder="Easting" readonly />
+      </div>
+      <div>
+        <label for="height">Dynamic Height (m)</label>
+        <input id="height" type="number" step="0.1" placeholder="Height (m)" readonly />
+      </div>
+      <div>
+        <label for="accuracy">Accuracy (m)</label>
+        <input id="accuracy" type="number" step="0.1" placeholder="Accuracy" readonly />
+      </div>
 
-    if (!lat || !lng) {
-      alert("Please enter both latitude and longitude.");
-      return;
-    }
+      <div class="status">
+        <span id="status" class="pill">Waiting for GPS fix...</span>
+      </div>
 
-    // Show loading text and disable button
-    mapBtn.textContent = 'Loading...';
-    mapBtn.disabled = true;
+      <div class="result-box" id="result-box">
+        <!-- Display the result here -->
+      </div>
 
-const geoUrl = `geo:${lat},${lng}?q=${lat},${lng}`;
-const webUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-const isAndroid = /Android/i.test(navigator.userAgent);
+      <!-- Circular Button to Pick Coordinates -->
+      <div class="circular-button" id="pick-btn">📍</div>
 
-// Optional loading UI update
-mapBtn.textContent = 'Opening...';
-mapBtn.disabled = true;
+      <!-- Download CSV Button -->
+      <button class="btn secondary" id="download-btn">Download CSV</button>
 
-setTimeout(() => {
-  if (isMobile && isAndroid) {
-    // Use window.open to avoid replacing the current page
-    try {
-      window.open(geoUrl);
-    } catch {
-      window.open(webUrl, '_blank');
-    }
-  } else {
-    // Always open the web URL in Safari or non-Android devices
-    window.open(webUrl, '_blank');
-  }
-
-  // Reset the button after a few seconds
-  setTimeout(() => {
-    mapBtn.textContent = 'View in Google Maps';
-    mapBtn.disabled = false;
-  }, 3000);
-}, 300); // Optional delay for UI feedback
-
-  }
-</script>
-
-
-  <div class="converter">
-    <h2>UTM(ITRF) to Degrees</h2>
-    <label>ITRF Easting:</label><input type="number" id="utm_easting" step="any">
-    <label>ITRF Northing:</label><input type="number" id="utm_northing" step="any">
-    <label>Zone:</label>
-    <select id="utm_zone">
-      <option value="36">36</option>
-      <option value="35">35</option>
-    </select>
-
-    <label>Hemisphere (N/S):</label>
-    <select id="utm_hemisphere">
-      <option value="N">N</option>
-      <option value="S">S</option>
-    </select>
-
-    <button data-action="utmToDD()">Convert</button>
-    <div class="result" id="utm_to_dd_result"></div>
-      <p>Upload a CSV with E and N columns:</p>
-      <input type="file" id="utm_to_dd_file" accept=".csv" />
-      <button data-action="processUTMtoDD()">Convert & Download</button>
-      <div class="result" id="utm_to_dd_status"></div>
-    
+      <div id="error-message" class="error"></div>
+    </div>
   </div>
 
   <script>
-    function ddToUTM() {
-      const lat = parseFloat(document.getElementById('dd_lat').value);
-      const lon = parseFloat(document.getElementById('dd_lon').value);
+    const storedCoordinates = [];
 
+    function ddToUTM(lat, lon) {
       const a = 6378137.0;
       const f = 1 / 298.257223563;
       const k0 = 0.9996;
@@ -263,956 +99,106 @@ setTimeout(() => {
       const northingAdjusted = lat < 0 ? northing + 10000000 : northing;
       const hemisphere = lat < 0 ? 'S' : 'N';
 
-      document.getElementById('dd_to_utm_result').innerHTML = `
-        <div class="result-box">
-          <p><strong>Zone:</strong><span class="copyable" onclick="copyText(this)"> ${zone}${hemisphere}</p>
-          <p><strong>ITRF Easting:</strong><span class="copyable" onclick="copyText(this)"> ${easting.toFixed(3)}</p>
-          <p><strong>ITRF Northing:</strong><span class="copyable" onclick="copyText(this)"> ${northingAdjusted.toFixed(3)}</p>
-        </div>`;
-
+      return {
+        zone: zone + hemisphere,
+        easting: easting.toFixed(3),
+        northing: northingAdjusted.toFixed(3)
+      };
     }
 
-   function utmToDD() {
-  const easting = parseFloat(document.getElementById('utm_easting').value);
-  const northing = parseFloat(document.getElementById('utm_northing').value);
-  const zone = parseInt(document.getElementById('utm_zone').value);
-  const hemi = document.getElementById('utm_hemisphere').value.toUpperCase();
+    function handleGeoSuccess(pos) {
+      const c = pos.coords;
+      console.log('Geolocation Success:', c); // Log for debugging
 
-  if (isNaN(easting) || isNaN(northing) || isNaN(zone) || (hemi !== 'N' && hemi !== 'S')) {
-    alert("Please enter valid UTM coordinates and hemisphere (N or S).");
-    return;
-  }
+      // Check if altitude is available, if not set to N/A
+      const height = (c.altitude !== null && c.altitude !== undefined) ? c.altitude : 'N/A';
 
-  const a = 6378137.0;
-  const f = 1 / 298.257223563;
-  const k0 = 0.9996;
-  const e = Math.sqrt(f * (2 - f));
-  const e1sq = e * e / (1 - e * e);
+      // Convert latitude and longitude to UTM
+      const result = ddToUTM(c.latitude, c.longitude);
 
-  const x = easting - 500000;
-  const y = hemi === 'S' ? northing - 10000000 : northing;
+      // Update display fields with UTM values
+      document.getElementById('northing').value = result.northing;
+      document.getElementById('easting').value = result.easting;
+      document.getElementById('height').value = height;
+      document.getElementById('accuracy').value = c.accuracy;
 
-  const lambda0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
-
-  const m = y / k0;
-  const mu = m / (a * (1 - Math.pow(e, 2)/4 - 3*Math.pow(e, 4)/64 - 5*Math.pow(e, 6)/256));
-
-  const e1 = (1 - Math.sqrt(1 - Math.pow(e,2))) / (1 + Math.sqrt(1 - Math.pow(e,2)));
-  const j1 = (3*e1/2 - 27*Math.pow(e1,3)/32);
-  const j2 = (21*Math.pow(e1,2)/16 - 55*Math.pow(e1,4)/32);
-  const j3 = (151*Math.pow(e1,3)/96);
-  const j4 = (1097*Math.pow(e1,4)/512);
-  const fp = mu + j1*Math.sin(2*mu) + j2*Math.sin(4*mu) + j3*Math.sin(6*mu) + j4*Math.sin(8*mu);
-
-  const sinfp = Math.sin(fp);
-  const cosfp = Math.cos(fp);
-  const tanfp = Math.tan(fp);
-
-  const n = a / Math.sqrt(1 - Math.pow(e * sinfp, 2));
-  const r = a * (1 - Math.pow(e, 2)) / Math.pow(1 - Math.pow(e * sinfp, 2), 1.5);
-  const d = x / (n * k0);
-
-  const lat = fp - (n * tanfp / r) * (d*d/2 - (5 + 3*tanfp*tanfp + e1sq*cosfp*cosfp - 9*e1sq*tanfp*tanfp) * Math.pow(d,4)/24);
-  const lon = lambda0 + (d - (1 + 2*tanfp*tanfp + e1sq*cosfp*cosfp) * Math.pow(d,3)/6) / cosfp;
-
-  const latDeg = (lat * 180 / Math.PI).toFixed(6);
-  const lonDeg = (lon * 180 / Math.PI).toFixed(6);
-
-const geoUrl = `geo:${latDeg},${lonDeg}?q=${latDeg},${lonDeg}`;
-const mapUrl = `https://www.google.com/maps?q=${latDeg},${lonDeg}`;
-const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-document.getElementById('utm_to_dd_result').innerHTML = `
-  <div class="result-box">
-    <p><strong>Latitude:</strong><span class="copyable" onclick="copyText(this)"> ${latDeg}</p>
-    <p><strong>Longitude:</strong><span class="copyable" onclick="copyText(this)"> ${lonDeg}</p>
-    <button id="utmMapBtn" style="
-      margin-top:10px;
-      background-color:#4B0082;
-      color:white;
-      border:none;
-      padding:10px 20px;
-      border-radius:5px;
-      cursor:pointer;">
-      View in Google Maps
-    </button>
-  </div>
-`;
-// Safe map open logic for Safari and others
-document.getElementById('utmMapBtn').addEventListener('click', function () {
-  if (isMobile && /Android/i.test(navigator.userAgent)) {
-    // Attempt to open in native Maps app
-    try {
-      window.open(geoUrl);
-    } catch (e) {
-      window.open(mapUrl, '_blank');
-    }
-  } else {
-    // For Safari, iOS, and desktop – always use web URL
-    window.open(mapUrl, '_blank');
-  }
-});
-const mapBtn = document.getElementById('utmMapBtn');
-mapBtn.addEventListener('click', () => {
-  mapBtn.textContent = 'Loading...';
-  mapBtn.disabled = true;
-
-  const redirectUrl = isMobile ? geoUrl : mapUrl;
-
-  setTimeout(() => {
-    if (isMobile) {
-      window.location.href = redirectUrl;
-    } else {
-      window.open(redirectUrl, '_blank');
+      document.getElementById('result-box').innerHTML = `
+        <p><strong>Zone:</strong> ${result.zone}</p>
+        <p><strong>UTM Easting:</strong> ${result.easting}</p>
+        <p><strong>UTM Northing:</strong> ${result.northing}</p>
+        <p><strong>Height (m):</strong> ${height}</p>
+      `;
+      document.getElementById('status').textContent = 'Fix OK';
     }
 
-    setTimeout(() => {
-      mapBtn.textContent = 'View in Google Maps';
-      mapBtn.disabled = false;
-    }, 3000);
-  }, 300);
-});
-
-}
-
-  </script>
-
-  
-<div class="converter">
-  <h2>ARC1960 (Zone 36N) to ITRF</h2>
-  <label>ARC1960 Easting (m):</label><input type="number" id="arc_easting" step="any">
-  <label>ARC1960 Northing (m):</label><input type="number" id="arc_northing" step="any">
-  <button data-action="convertARCtoITRF()">Convert</button>
-  <div class="result" id="arc_to_itrf_result"></div>
-    <p>Upload a CSV with columns: E and N</p>
-    <input type="file" id="arc_to_itrf_file" accept=".csv" />
-    <button data-action="processARCtoITRF()">Convert & Download</button>
-    <div class="result" id="arc_to_itrf_status"></div>
-</div>
-<script>
-function convertARCtoITRF() {
-  const arcE = parseFloat(document.getElementById('arc_easting').value);
-  const arcN = parseFloat(document.getElementById('arc_northing').value);
-
-  // Reference ARC points with their respective shifts
-  const referenceOffsets = [
-    { E: 600000, N: 80000, eAdd: 84.178, nAdd: -296.226 },
-    { E: 620000, N: 90000, eAdd: 84.104, nAdd: -296.369 },
-    { E: 630000, N: 100000, eAdd: 84.050, nAdd: -296.508 },
-    { E: 640000, N: 110000, eAdd: 83.987, nAdd: -296.654 },
-    { E: 650000, N: 120000, eAdd: 83.915, nAdd: -296.804 },
-    { E: 660000, N: 130000, eAdd: 83.833, nAdd: -296.957 },
-    { E: 680000, N: 150000, eAdd: 83.640, nAdd: -297.266 },
-    { E: 680000, N: 160000, eAdd: 83.584, nAdd: -297.313 },
-    { E: 680000, N: 180000, eAdd: 83.464, nAdd: -297.356 },
-  ];
-
-  // Find the nearest reference point using Euclidean distance
-  let nearest = referenceOffsets[0];
-  let minDist = Math.hypot(arcE - nearest.E, arcN - nearest.N);
-
-  for (let i = 1; i < referenceOffsets.length; i++) {
-    const ref = referenceOffsets[i];
-    const dist = Math.hypot(arcE - ref.E, arcN - ref.N);
-    if (dist < minDist) {
-      nearest = ref;
-      minDist = dist;
-    }
-  }
-
-  const itrfE = arcE + nearest.eAdd;
-  const itrfN = arcN + nearest.nAdd;
-
-  document.getElementById('arc_to_itrf_result').innerHTML = `
-    <div class="result-box">
-      <p><strong>ITRF Easting:</strong><span class="copyable" onclick="copyText(this)"> ${itrfE.toFixed(3)}</span></p>
-      <p><strong>ITRF Northing:</strong><span class="copyable" onclick="copyText(this)"> ${itrfN.toFixed(3)}</span></p>
-    </div>`;
-}
-
-</script>
-
-<div class="converter">
-  <h2>ITRF to ARC1960 (Zone 36N)</h2>
-  <label>ITRF Easting (m):</label><input type="number" id="itrf_easting" step="any">
-  <label>ITRF Northing (m):</label><input type="number" id="itrf_northing" step="any">
-  <button data-action="convertITRFtoARC()">Convert</button>
-  <div class="result" id="itrf_to_arc_result"></div>
-    <p>Upload a CSV with E and N columns:</p>
-    <input type="file" id="itrf_to_arc_file" accept=".csv" />
-    <button data-action="processITRFtoARC()">Convert & Download</button>
-    <div class="result" id="itrf_to_arc_status"></div>
-    
-</div>
-<script>
-  function convertITRFtoARC() {
-  const itrfE = parseFloat(document.getElementById('itrf_easting').value);
-  const itrfN = parseFloat(document.getElementById('itrf_northing').value);
-
-  if (isNaN(itrfE) || isNaN(itrfN)) {
-    document.getElementById('itrf_to_arc_result').innerHTML = "<p>Please enter valid Easting and Northing values.</p>";
-    return;
-  }
-
-  // ARC reference points with known offsets
-  const referenceOffsets = [
-    { E: 600000, N: 80000, eAdd: -84.178, nAdd: 296.226 },
-    { E: 620000, N: 90000, eAdd: -84.104, nAdd: 296.369 },
-    { E: 630000, N: 100000, eAdd: -84.050, nAdd: 296.508 },
-    { E: 640000, N: 110000, eAdd: -83.987, nAdd: 296.654 },
-    { E: 650000, N: 120000, eAdd: -83.915, nAdd: 296.804 },
-    { E: 660000, N: 130000, eAdd: -83.833, nAdd: 296.957 },
-    { E: 680000, N: 150000, eAdd: -83.640, nAdd: 297.266 },
-    { E: 680000, N: 160000, eAdd: -83.584, nAdd: 297.313 },
-    { E: 680000, N: 180000, eAdd: -83.464, nAdd: 297.356 },
-  ];
-
-  // Find nearest converted ARC reference to ITRF input
-  let nearest = referenceOffsets[0];
-  let minDist = Math.hypot(
-    itrfE - (nearest.E + nearest.eAdd),
-    itrfN - (nearest.N + nearest.nAdd)
-  );
-
-  for (let i = 1; i < referenceOffsets.length; i++) {
-    const ref = referenceOffsets[i];
-    const transformedE = ref.E + ref.eAdd;
-    const transformedN = ref.N + ref.nAdd;
-    const dist = Math.hypot(itrfE - transformedE, itrfN - transformedN);
-    if (dist < minDist) {
-      nearest = ref;
-      minDist = dist;
-    }
-  }
-
-  // Reverse transformation to ARC
-  const arcE = itrfE + nearest.eAdd;
-  const arcN = itrfN + nearest.nAdd;
-
-  document.getElementById('itrf_to_arc_result').innerHTML = `
-    <div class="result-box">
-      <p><strong>ARC1960 Easting:</strong> <span class="copyable" onclick="copyText(this)">${arcE.toFixed(3)}</span></p>
-      <p><strong>ARC1960 Northing:</strong> <span class="copyable" onclick="copyText(this)">${arcN.toFixed(3)}</span></p>
-    </div>`;
-}
-
-
-</script>
-
-
-<script>
-  function processPNEZD() {
-    const fileInput = document.getElementById('pnezd_file');
-    const status = document.getElementById('pnezd_status');
-
-    if (!input.files.length) {
-      status.innerText = "Please upload a CSV.";
-      status.style.color = "red";
-      status.style.fontWeight = "bold";
-      status.style.marginTop = "10px";
-      return;
+    function handleGeoError(err) {
+      const errorMsg = {
+        1: 'Permission denied. Enable location for this page.',
+        2: 'Position unavailable. Move to open sky, enable GPS.',
+        3: 'Timeout. Try again.'
+      };
+      document.getElementById('status').textContent = errorMsg[err.code] || 'Geolocation error.';
+      document.getElementById('error-message').textContent = errorMsg[err.code] || 'Geolocation error.';
     }
 
+    // Start tracking location automatically on load
+    function startTracking() {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.watchPosition(handleGeoSuccess, handleGeoError, {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 0
+        });
+      } else {
+        document.getElementById('status').textContent = 'Geolocation not supported in this browser.';
+      }
+    }
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const content = e.target.result;
-      const lines = content.trim().split('\n');
-      const header = lines[0].split(',');
-      const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
-      const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
-      if (idxN === -1 || idxE === -1) {
-        status.innerText = "Missing Easting/Northing columns.";
+    // Store coordinates when pick button is clicked
+    document.getElementById('pick-btn').addEventListener('click', function() {
+      const northing = document.getElementById('northing').value;
+      const easting = document.getElementById('easting').value;
+      const height = document.getElementById('height').value;
+      const accuracy = document.getElementById('accuracy').value;
+
+      if (northing && easting && height && accuracy) {
+        storedCoordinates.push({
+          northing: northing,
+          easting: easting,
+          height: height,
+          accuracy: accuracy,
+          timestamp: new Date().toISOString()
+        });
+        alert('Coordinates stored!');
+      } else {
+        alert('Please wait for a valid GPS fix.');
+      }
+    });
+
+    // Download stored coordinates as CSV
+    document.getElementById('download-btn').addEventListener('click', function() {
+      if (storedCoordinates.length === 0) {
+        alert('No coordinates stored yet.');
         return;
       }
 
-      const deltaE = -83.86, deltaN = 296.894;
-      const converted = [header.join(',')];
-
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(',');
-        let e = parseFloat(cols[idxE]);
-        let n = parseFloat(cols[idxN]);
-        cols[idxE] = (e + deltaE).toFixed(3);
-        cols[idxN] = (n + deltaN).toFixed(3);
-        converted.push(cols.join(','));
-      }
-
-      const blob = new Blob([converted.join('\n')], { type: "text/csv" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "converted_pnezd_arc1960.csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      status.innerText = "Conversion complete. File downloaded.";
-    };
-
-    reader.readAsText(fileInput.files[0]);
-  }
-  function normalizeHeader(header) {
-  return header.map(col => {
-    const lower = col.trim().toLowerCase();
-    if (lower.includes("latitude")) return "Lat";
-    if (lower.includes("longitude")) return "Lon";
-    if (lower.includes("easting")) return "E";
-    if (lower.includes("northing")) return "N";
-    return col.trim();
-  });
-}
-
-</script>
-
-<script>
-  function parseCSVLines(content) {
-    return content.trim().split('\n').map(line => line.split(','));
-  }
-
-  function downloadCSV(data, filename) {
-    data.push("");  // Optional blank line
-    data.push("Created by Alvin Shedrack");
-    const blob = new Blob([data.join('\n')], { type: "text/csv" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-function normalizeHeader(header) {
-  return header.map(col => {
-    const lower = col.trim().toLowerCase();
-    if (lower.includes("latitude")) return "Lat";
-    if (lower.includes("longitude")) return "Lon";
-    if (lower.includes("easting")) return "E";
-    if (lower.includes("northing")) return "N";
-    return col.trim();
-  });
-}
-
-function processARCtoITRF() {
-  const input = document.getElementById('arc_to_itrf_file');
-  const status = document.getElementById('arc_to_itrf_status');
-
-  if (!input.files.length) {
-    status.innerText = "Please upload a CSV.";
-    status.style.color = "red";
-    status.style.fontWeight = "bold";
-    status.style.marginTop = "10px";
-    return;
-  }
-
-  // Reference ARC values and their respective E+ / N+ shifts
-  const referenceOffsets = [
-    { E: 600000, N: 80000,  eAdd: -84.178, nAdd: 296.226 },
-    { E: 620000, N: 90000,  eAdd: -84.104, nAdd: 296.369 },
-    { E: 630000, N: 100000, eAdd: -84.050, nAdd: 296.508 },
-    { E: 640000, N: 110000, eAdd: -83.987, nAdd: 296.654 },
-    { E: 650000, N: 120000, eAdd: -83.915, nAdd: 296.804 },
-    { E: 660000, N: 130000, eAdd: -83.833, nAdd: 296.957 },
-    { E: 680000, N: 150000, eAdd: -83.640, nAdd: 297.266 },
-    { E: 680000, N: 160000, eAdd: -83.584, nAdd: 297.313 },
-    { E: 680000, N: 180000, eAdd: -83.464, nAdd: 297.356 },
-  ];
-
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const lines = parseCSVLines(e.target.result);
-    const header = lines[0];
-    const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
-    const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
-
-    if (idxE === -1 || idxN === -1) {
-      status.innerText = "Missing columns.";
-      return;
-    }
-
-    const result = [header.join(',')];
-
-    for (let i = 1; i < lines.length; i++) {
-      const row = lines[i];
-      const eVal = parseFloat(row[idxE]);
-      const nVal = parseFloat(row[idxN]);
-
-      // Find nearest reference point based on Euclidean distance
-      let nearest = referenceOffsets[0];
-      let minDist = Math.hypot(eVal - nearest.E, nVal - nearest.N);
-
-      for (let j = 1; j < referenceOffsets.length; j++) {
-        const ref = referenceOffsets[j];
-        const dist = Math.hypot(eVal - ref.E, nVal - ref.N);
-        if (dist < minDist) {
-          nearest = ref;
-          minDist = dist;
-        }
-      }
-        function normalizeHeader(header) {
-  return header.map(col => {
-    const lower = col.trim().toLowerCase();
-    if (lower.includes("latitude")) return "Lat";
-    if (lower.includes("longitude")) return "Lon";
-    if (lower.includes("easting")) return "E";
-    if (lower.includes("northing")) return "N";
-    return col.trim();
-  });
-}
-
-      row[idxE] = (eVal - nearest.eAdd).toFixed(3);
-      row[idxN] = (nVal - nearest.nAdd).toFixed(3);
-      result.push(row.join(','));
-    }
-
-    downloadCSV(result, "arc_to_itrf_converted.csv");
-    status.innerText = "Download complete.";
-  };
-
-  reader.readAsText(input.files[0]);
-}
-
-
- function processITRFtoARC() {
-  const input = document.getElementById('itrf_to_arc_file');
-  const status = document.getElementById('itrf_to_arc_status');
-
-  if (!input.files.length) {
-    status.innerText = "Please upload a CSV.";
-    status.style.color = "red";
-    status.style.fontWeight = "bold";
-    status.style.marginTop = "10px";
-    return;
-  }
-
-  // ARC reference points with associated shift values
-  const referenceOffsets = [
-    { E: 600000, N: 80000, eAdd: 84.178, nAdd: -296.226 },
-    { E: 620000, N: 90000, eAdd: 84.104, nAdd: -296.369 },
-    { E: 630000, N: 100000, eAdd: 84.050, nAdd: -296.508 },
-    { E: 640000, N: 110000, eAdd: 83.987, nAdd: -296.654 },
-    { E: 650000, N: 120000, eAdd: 83.915, nAdd: -296.804 },
-    { E: 660000, N: 130000, eAdd: 83.833, nAdd: -296.957 },
-    { E: 680000, N: 150000, eAdd: 83.640, nAdd: -297.266 },
-    { E: 680000, N: 160000, eAdd: 83.584, nAdd: -297.313 },
-    { E: 680000, N: 180000, eAdd: 83.464, nAdd: -297.356 },
-  ];
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const lines = parseCSVLines(e.target.result);
-    const header = lines[0];
-    const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
-    const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
-
-    if (idxE === -1 || idxN === -1) {
-      status.innerText = "Missing 'Easting' or 'Northing' column.";
-      return;
-    }
-
-    const result = [header.join(',')];
-
-    for (let i = 1; i < lines.length; i++) {
-      const row = lines[i];
-      const origE = parseFloat(row[idxE]);
-      const origN = parseFloat(row[idxN]);
-
-      if (isNaN(origE) || isNaN(origN)) continue;
-
-      // Find the closest ARC reference point
-      let nearest = referenceOffsets[0];
-      let minDist = Math.hypot(origE - (nearest.E + nearest.eAdd), origN - (nearest.N + nearest.nAdd));
-
-      for (let j = 1; j < referenceOffsets.length; j++) {
-        const ref = referenceOffsets[j];
-        const convertedRefE = ref.E + ref.eAdd;
-        const convertedRefN = ref.N + ref.nAdd;
-        const dist = Math.hypot(origE - convertedRefE, origN - convertedRefN);
-
-        if (dist < minDist) {
-          nearest = ref;
-          minDist = dist;
-        }
-      }
-        function normalizeHeader(header) {
-  return header.map(col => {
-    const lower = col.trim().toLowerCase();
-    if (lower.includes("latitude")) return "Lat";
-    if (lower.includes("longitude")) return "Lon";
-    if (lower.includes("easting")) return "E";
-    if (lower.includes("northing")) return "N";
-    return col.trim();
-  });
-}
-
-      // Apply reverse transformation: subtract eAdd/nAdd to get back to ARC
-    row[idxE] = (origE - nearest.eAdd).toFixed(3);
-    row[idxN] = (origN - nearest.nAdd).toFixed(3);
-
-
-      result.push(row.join(','));
-    }
-
-    downloadCSV(result, "itrf_to_arc_converted.csv");
-    status.innerText = "Conversion complete. File downloaded.";
-  };
-
-  reader.readAsText(input.files[0]);
-}
-
-
-  function parseCSVLines(text) {
-    const lines = text.trim().split('\n');
-    return lines.map(line => line.split(','));
-  }
-
-  function downloadCSV(rows, filename) {
-    const csvContent = rows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const link = document.createElement("a");
-
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  }
-  function normalizeHeader(header) {
-  return header.map(col => {
-    const lower = col.trim().toLowerCase();
-    if (lower.includes("latitude")) return "Lat";
-    if (lower.includes("longitude")) return "Lon";
-    if (lower.includes("easting")) return "E";
-    if (lower.includes("northing")) return "N";
-    return col.trim();
-  });
-}
-
-  function processUTMtoDD() {
-    const input = document.getElementById('utm_to_dd_file');
-    const status = document.getElementById('utm_to_dd_status');
-    if (!input.files.length) {
-  status.innerText = "Please upload a CSV.";
-  status.style.color = "red";
-  status.style.fontWeight = "bold";
-  status.style.marginTop = "10px";
-  return;
-}
-
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const lines = parseCSVLines(e.target.result);
-      const header = lines[0];
-      const idxE = header.findIndex(h => h.toLowerCase().includes("easting"));
-      const idxN = header.findIndex(h => h.toLowerCase().includes("northing"));
-// Default values
-const defaultZone = 36;
-const defaultHemisphere = 'N';
-if ([idxE, idxN].includes(-1)) {
-  status.innerText = "Missing Easting/Northing columns.";
-  return;
-}
-
-
-
-      const result = ["Latitude,Longitude"];
-      for (let i = 1; i < lines.length; i++) {
-        const row = lines[i];
-        const e = parseFloat(row[idxE]) - 500000;
-const n = defaultHemisphere === 'S' ? parseFloat(row[idxN]) - 10000000 : parseFloat(row[idxN]);
-const zone = defaultZone;
-        const a = 6378137.0, f = 1/298.257223563, k0 = 0.9996, e2 = f * (2 - f);
-        const m = n / k0;
-        const mu = m / (a * (1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256));
-        const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
-        const phi1 = mu + (3*e1/2 - 27*e1**3/32)*Math.sin(2*mu)
-          + (21*e1**2/16 - 55*e1**4/32)*Math.sin(4*mu) + (151*e1**3/96)*Math.sin(6*mu);
-        const n1 = a / Math.sqrt(1 - e2 * Math.sin(phi1)**2);
-        const r1 = a * (1 - e2) / Math.pow(1 - e2 * Math.sin(phi1)**2, 1.5);
-        const d = e / (n1 * k0);
-        const lat = phi1 - (n1 * Math.tan(phi1) / r1) * (d*d/2);
-        const lon = ((zone - 1) * 6 - 180 + 3) * Math.PI/180 + (d - d**3/6) / Math.cos(phi1);
-        result.push(`${(lat*180/Math.PI).toFixed(6)},${(lon*180/Math.PI).toFixed(6)}`);
-      }
-      downloadCSV(result, "utm_to_dd_converted.csv");
-      status.innerText = "Download complete.";
-    };
-    reader.readAsText(input.files[0]);
-  }
-  function normalizeHeader(header) {
-  return header.map(col => {
-    const lower = col.trim().toLowerCase();
-    if (lower.includes("latitude")) return "Lat";
-    if (lower.includes("longitude")) return "Lon";
-    if (lower.includes("easting")) return "E";
-    if (lower.includes("northing")) return "N";
-    return col.trim();
-  });
-}
-
-  function processDDtoUTM() {
-    const input = document.getElementById('dd_to_utm_file');
-    const status = document.getElementById('dd_to_utm_status');
-    if (!input.files.length) {
-  status.innerText = "Please upload a CSV.";
-  status.style.color = "red";
-  status.style.fontWeight = "bold";
-  status.style.marginTop = "10px";
-  return;
-}
-
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const lines = parseCSVLines(e.target.result);
-const rawHeader = lines[0];
-const header = normalizeHeader(rawHeader);
-const idxLat = header.findIndex(h => h === "Lat");
-const idxLon = header.findIndex(h => h === "Lon");
-
-      if (idxLat === -1 || idxLon === -1) return status.innerText = "Missing columns.";
-
-      const result = ["Zone,Hemisphere,Easting,Northing"];
-      for (let i = 1; i < lines.length; i++) {
-        const row = lines[i];
-        const lat = parseFloat(row[idxLat]);
-        const lon = parseFloat(row[idxLon]);
-        const a = 6378137.0, f = 1/298.257223563, k0 = 0.9996, e = Math.sqrt(f * (2 - f));
-        const zone = Math.floor((lon + 180) / 6) + 1;
-        const lambda0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
-        const phi = lat * Math.PI / 180;
-        const lambda = lon * Math.PI / 180;
-        const n = a / Math.sqrt(1 - e*e*Math.sin(phi)**2);
-        const t = Math.tan(phi)**2;
-        const c = (e*e)/(1 - e*e) * Math.cos(phi)**2;
-        const A = Math.cos(phi) * (lambda - lambda0);
-        const m = a * ((1 - e*e/4 - 3*e**4/64 - 5*e**6/256) * phi
-                    - (3*e*e/8 + 3*e**4/32 + 45*e**6/1024) * Math.sin(2*phi)
-                    + (15*e**4/256 + 45*e**6/1024) * Math.sin(4*phi)
-                    - (35*e**6/3072) * Math.sin(6*phi));
-        const easting = 500000 + k0 * n * (A + (1 - t + c)*Math.pow(A, 3)/6);
-        const northing = k0 * (m + n * Math.tan(phi) * (A*A/2));
-        const hemi = lat < 0 ? "S" : "N";
-        const northingAdj = lat < 0 ? northing + 10000000 : northing;
-        result.push(`${zone},${hemi},${easting.toFixed(3)},${northingAdj.toFixed(3)}`);
-      }
-      downloadCSV(result, "dd_to_utm_converted.csv");
-      status.innerText = "Download complete.";
-    };
-    reader.readAsText(input.files[0]);
-  }
-  function normalizeHeader(header) {
-  return header.map(col => {
-    const lower = col.trim().toLowerCase();
-    if (lower.includes("latitude")) return "Lat";
-    if (lower.includes("longitude")) return "Lon";
-    if (lower.includes("easting")) return "E";
-    if (lower.includes("northing")) return "N";
-    return col.trim();
-  });
-}
-
-</script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => console.log('Service Worker registered ✅', reg))
-      .catch(err => console.error('Service Worker failed ❌', err));
-  });
-}
-</script>
-<script>
-  function copyText(element) {
-  const text = element.textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const toast = document.getElementById("toast");
-    toast.className = "show";
-    setTimeout(() => {
-      toast.className = toast.className.replace("show", "");
-    }, 1500);
-  });
-}
-</script>
-</div>
-<footer>
-    Created by <strong>Alvin Shedrack</strong> © 2025
-  </footer>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const buttons = document.querySelectorAll('button[data-action]');
-    
-    buttons.forEach(button => {
-      button.addEventListener('click', function (e) {
-        e.preventDefault();
-        
-        const originalText = button.textContent;
-        button.textContent = 'Loading...';
-        button.disabled = true;
-
-        const action = button.getAttribute('data-action');
-
-        // Wait a bit for loading effect, then execute the function
-        setTimeout(() => {
-          try {
-            new Function(action)();  // Run the string as a function
-          } catch (err) {
-            console.error("Action failed:", err);
-          }
-
-          // Restore button state after 2.5s
-          setTimeout(() => {
-            button.textContent = originalText;
-            button.disabled = false;
-          }, 600);
-        }, 200);
+      let csvContent = 'Northing,Easting,Height,Accuracy,Timestamp\n';
+      storedCoordinates.forEach(function(coord) {
+        csvContent += `${coord.northing},${coord.easting},${coord.height},${coord.accuracy},${coord.timestamp}\n`;
       });
-    });
-  });
-</script>
-<button id="clearAllBtn" style="
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 12px 20px;
-  background-color: crimson;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  font-size: 16px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  cursor: pointer;
-  z-index: 999;
-">
-  Clear All
-</button>
-<script>
-  document.getElementById('clearAllBtn').addEventListener('click', function () {
-    // Clear all text, number, date, email, and file inputs
-    const inputs = document.querySelectorAll('input');
-    inputs.forEach(input => {
-      if (input.type !== 'button' && input.type !== 'submit') {
-        input.value = '';
-      }
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'coordinates.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     });
 
-    // Clear all textareas
-    const textareas = document.querySelectorAll('textarea');
-    textareas.forEach(textarea => textarea.value = '');
-
-    // Optionally clear all select dropdowns
-    const selects = document.querySelectorAll('select');
-    selects.forEach(select => select.selectedIndex = 0);
-
-    // Clear result/status divs
-    const outputs = document.querySelectorAll('.result, [id$="_status"]');
-    outputs.forEach(div => div.innerText = '');
-
-    alert("All fields have been cleared.");
-  });
-</script>
-<!-- Feedback Button -->
-<button id="toggleFeedbackBtn" onclick="toggleFeedback()" style="
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
-  background: #04924b;
-  color: white;
-  border: none;
-  border-radius: 30px;
-  padding: 12px 20px;
-  font-size: 16px;
-  font-weight: 500;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  cursor: pointer;
-  transition: background 0.3s ease;
-  z-index: 999;
-">
-  💬 Give Feedback
-</button>
-
-
-
-<!-- Feedback Modal -->
-<!-- Overlay Container -->
-<div id="feedbackOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.3); z-index: 999;" onclick="hideFeedbackIfClickedOutside(event)">
-  
-  <!-- Actual Modal -->
-  <div id="feedbackModal" style="
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 12px;
-    width: 280px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    font-family: 'Segoe UI', sans-serif;
-    z-index: 1001;
-  ">
-    <h4 style="margin: 0 0 12px; font-size: 16px; color: #4B0082;">We value your feedback</h4>
-
-    <textarea id="feedbackText" placeholder="Your feedback..." rows="4" style="
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      resize: vertical;
-      font-size: 14px;
-      font-family: inherit;
-    "></textarea>
-
-    <input type="text" id="feedbackName" placeholder="Your name and email" style="
-      margin-top: 10px;
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: inherit;
-    ">
-
-
-
-    <button id="submitFeedbackBtn" onclick="submitFeedback()" style="
-      margin-top: 14px;
-      background: #4B0082;
-      color: white;
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    ">
-      Submit Feedback
-    </button>
-  </div>
-</div>
-
-
-
-
-<script>
-  const formspreeEndpoint = "https://formspree.io/f/mgvzarvk";
-
-  function showToast(message = "Feedback sent successfully!", color = "#28a745") {
-    const toast = document.createElement("div");
-    toast.innerText = message;
-    toast.style = `
-      position: fixed;
-      bottom: 100px;
-      right: 20px;
-      background: ${color};
-      color: white;
-      padding: 10px 16px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      z-index: 2000;
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
-  }
-
-async function submitFeedback() {
-  const message = document.getElementById('feedbackText').value.trim();
-  const name = document.getElementById('feedbackName').value.trim();
-  const submitBtn = document.getElementById('submitFeedbackBtn');  // New
-
-  if (!message) {
-    alert("Feedback cannot be empty.");
-    return;
-  }
-
-  // 🔄 Show loading state
-  const originalText = submitBtn.textContent;
-  submitBtn.textContent = "Submitting...";
-  submitBtn.disabled = true;
-
-  const feedback = {
-    message,
-    name: name || "anonymous"
-  };
-
-  try {
-    const response = await fetch(formspreeEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(feedback)
-    });
-
-    if (response.ok) {
-      showToast("Feedback sent successfully!", "#28a745");
-    } else {
-      showToast("Submission failed. Please try again later.", "#dc3545");
-    }
-  } catch (error) {
-    showToast("Network error. Please check your connection.", "#dc3545");
-  }
-
-  // Reset input fields
-  document.getElementById('feedbackText').value = '';
-  document.getElementById('feedbackName').value = '';
-
-  // Hide entire feedback overlay/modal
-  document.getElementById('feedbackOverlay').style.display = 'none';
-
-  // Restore button
-  submitBtn.textContent = originalText;
-  submitBtn.disabled = false;
-
-}
-
-
-function toggleFeedback() {
-  const button = document.getElementById('toggleFeedbackBtn');
-  const overlay = document.getElementById('feedbackOverlay');
-
-  // Show loading state
-  const originalText = button.textContent;
-  button.textContent = 'Opening...';
-  button.disabled = true;
-
-  setTimeout(() => {
-    // Toggle the modal display
-    overlay.style.display = (overlay.style.display === 'none' || overlay.style.display === '') ? 'block' : 'none';
-
-    // Restore button
-    button.textContent = originalText;
-    button.disabled = false;
-  }, 500); // You can adjust this duration for visual effect
-}
-
-
-function hideFeedbackIfClickedOutside(event) {
-  const modal = document.getElementById('feedbackModal');
-  if (!modal.contains(event.target)) {
-    document.getElementById('feedbackOverlay').style.display = 'none';
-  }
-}
-
-
-</script>
-
-<div id="feedbackToast" style="
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #28a745;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  display: none;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-  z-index: 9999;
-">
-  Feedback sent successfully!
-</div>
-
+    // Start tracking when the page loads
+    startTracking();
+  </script>
 </body>
 </html>
