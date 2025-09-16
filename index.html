@@ -99,6 +99,7 @@
   <footer>
     Created by <strong>Alvin Shedrack</strong> © 2025
   </footer>
+
   <script>
   const storedCoordinates = [];
   let descriptionCount = 1;
@@ -199,13 +200,29 @@
     document.getElementById('status').textContent = errorMsg[err.code] || 'Geolocation error.';
   }
 
-  // Start tracking location automatically on load
+  // Request permission and start tracking location
   function startTracking() {
     if ('geolocation' in navigator) {
-      navigator.geolocation.watchPosition(handleGeoSuccess, handleGeoError, {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 0
+      // Check if permission is granted
+      navigator.permissions.query({ name: 'geolocation' }).then(function(permissionStatus) {
+        if (permissionStatus.state === 'granted') {
+          // Permission already granted, start tracking
+          navigator.geolocation.watchPosition(handleGeoSuccess, handleGeoError, {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 0
+          });
+        } else if (permissionStatus.state === 'prompt') {
+          // Request permission if it's in prompt state
+          navigator.geolocation.watchPosition(handleGeoSuccess, handleGeoError, {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 0
+          });
+        } else {
+          // Permission denied
+          document.getElementById('status').textContent = 'Permission denied. Enable location for this page.';
+        }
       });
     } else {
       document.getElementById('status').textContent = 'Geolocation not supported in this browser.';
@@ -274,7 +291,7 @@
   // Start tracking when the page loads
   startTracking();
 </script>
-  
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
