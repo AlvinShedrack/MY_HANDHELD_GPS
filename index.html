@@ -18,8 +18,8 @@
     .grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
     label { justify-content: center;font-size: 1.2rem; color: #03204e; display: block; margin-bottom: 4px; }
     input, button, textarea { 
-      width: 80%; /* Reduced the width from 100% to 80% */
-      padding: 10px 29px; 
+      width: 40%; /* Reduced the width from 100% to 80% */
+      padding: 10px 20px; 
       border-radius: 10px; font-size: 1.2rem;
       border: 6px solid #00b609; justify-content: center;
     }
@@ -33,7 +33,7 @@
   padding: 8px 12px;
   border-radius: 80px;
   margin-top: 12px;
-  max-height: 250px;
+  max-height: 200px;
   overflow-y: auto;
 }
 
@@ -42,6 +42,16 @@
   padding: 6px 8px;
   margin-bottom: 4px;
   color: #111;
+}
+.grid.two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two equal columns */
+  gap: 20px; /* Space between columns */
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column; /* Label on top, input below */
 }
 
     footer {
@@ -55,7 +65,7 @@
     .result-box { background: #f3f4f6; padding: 6px 12px; border-radius: 8px; margin-top: 12px; }
     .copyable { cursor: pointer; color: blue; }
     .btn {   font-weight: bold; font-size: 18px; width: 100%;   padding: 8px 12px; cursor: pointer; border: 3px solid #094fb9; background: #07090c; color: #ce1818; }
-    .btn.green { background-color: #4caf50; color: white; padding: 15px; border-radius: 50%; margin: 20px auto; font-size: 16px; }
+    .btn.green { background-color: #4caf50; color: white; padding: 5px; border-radius: 0%; margin: 2px auto; font-size: 16px; }
     .btn.secondary { background: #f3f4f6; color: #111827; }
     .circular-button {  font-weight: bold; border-radius: 50%; width: 120px; height: 120px; background-color: #f3f4f6; color: black; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; }
     .csv-box { margin-top: 20px; }
@@ -71,15 +81,19 @@
   <h1>My Handheld GPS</h1>
 
   <div class="card">
-    <div class="grid">
-      <div>
+    <div class="grid two-columns">
+      <div class="field-group">
         <label for="accuracy" style="font-size: 18px; font-weight: bold;">Accuracy (m)</label>
         <input id="accuracy" type="number" step="0.1" placeholder="Accuracy" readonly style="font-size: 16px; font-weight: bold;" />
       </div>
-      <div>
+    
+      <div class="field-group">
         <label for="description">Description</label>
-        <textarea id="description" placeholder="Enter description" rows="1" maxlength="10"></textarea>
+        <textarea id="description" placeholder="Name" rows="1" maxlength="10"></textarea>
       </div>
+    </div>
+    
+    <div class="grid">
 
       <!-- Circular Button to Pick Coordinates -->
       <div class="circular-button" id="pick-btn">PICK</div>
