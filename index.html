@@ -97,6 +97,9 @@
 
       <!-- Circular Button to Pick Coordinates -->
       <div class="circular-button" id="pick-btn">PICK</div>
+<div id="distance-box" class="result-box" style="text-align:center">
+  <strong>Distance from previous:</strong> — 
+</div>
 
       <div id="descriptions-box" class="result-box">
         <strong>Picked Descriptions:</strong>
@@ -313,6 +316,30 @@ document.getElementById('pick-btn').addEventListener('click', function () {
       timestamp: new Date().toISOString()
     };
     storedCoordinates.push(coordData);
+// === Distance from previous pick (meters) ===
+const distanceBox = document.getElementById('distance-box');
+let distText = '—';
+
+if (storedCoordinates.length >= 2) {
+  const prev = storedCoordinates[storedCoordinates.length - 2];
+  const curr = storedCoordinates[storedCoordinates.length - 1];
+
+  // Use UTM meters (Easting/Northing) for straight-line distance
+  const ePrev = parseFloat(prev.easting);
+  const nPrev = parseFloat(prev.northing);
+  const eCurr = parseFloat(curr.easting);
+  const nCurr = parseFloat(curr.northing);
+
+  if (Number.isFinite(ePrev) && Number.isFinite(nPrev) &&
+      Number.isFinite(eCurr) && Number.isFinite(nCurr)) {
+    const dx = eCurr - ePrev;
+    const dy = nCurr - nPrev;
+    const d = Math.hypot(dx, dy); // Euclidean distance in meters
+    distText = `${d.toFixed(2)} m`;
+  }
+}
+
+distanceBox.innerHTML = `<strong>Distance from previous:</strong> ${distText}`;
 
     // Show picked descriptions
     const descriptionsBox = document.getElementById('descriptions-box');
