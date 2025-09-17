@@ -84,6 +84,9 @@
       <!-- Circular Button to Pick Coordinates -->
       <div class="circular-button" id="pick-btn">PICK</div>
 
+      <div id="descriptions-box" class="result-box">
+        <strong>Picked Descriptions:</strong>
+      </div>
       <!-- Hidden Dynamic Fields for Northing, Easting, and Height -->
       <div class="hidden-fields">
         <label for="northing">Northing (N)</label>
@@ -247,6 +250,9 @@
 
   // Store coordinates when pick button is clicked
 // Store coordinates when pick button is clicked
+const storedCoordinates = [];
+let descriptionCount = 1;
+
 document.getElementById('pick-btn').addEventListener('click', function() {
     let description = document.getElementById('description').value.trim();
     if (!description) {
@@ -267,19 +273,9 @@ document.getElementById('pick-btn').addEventListener('click', function() {
         };
         storedCoordinates.push(coordData);
 
-        // Append the picked coordinate to the result-box instead of replacing
-        const resultBox = document.getElementById('result-box');
-        const newEntry = document.createElement('div');
-        newEntry.style.borderBottom = "1px solid #d1d5db";
-        newEntry.style.padding = "8px 0";
-        newEntry.innerHTML = `
-            <p><strong>Description:</strong> ${coordData.description}</p>
-            <p><strong>UTM Easting:</strong> ${coordData.easting}</p>
-            <p><strong>UTM Northing:</strong> ${coordData.northing}</p>
-            <p><strong>Height (m):</strong> ${coordData.height}</p>
-            <p><strong>Accuracy (m):</strong> ${coordData.accuracy}</p>
-        `;
-        resultBox.appendChild(newEntry);
+        // Update the descriptions-box to show all descriptions in a single line separated by commas
+        const descriptionsBox = document.getElementById('descriptions-box');
+        descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
 
         // Trigger vibration on coordinate pick
         vibrateDevice();
@@ -287,6 +283,7 @@ document.getElementById('pick-btn').addEventListener('click', function() {
         alert('Please wait for a valid GPS fix.');
     }
 });
+
 
 
   // Download stored coordinates as CSV
