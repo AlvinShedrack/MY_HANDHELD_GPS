@@ -265,51 +265,74 @@ let prefixCounts = {}; // Track counts per prefix
 
   // Store coordinates when pick button is clicked
 // Store coordinates when pick button is clicked
-document.getElementById('pick-btn').addEventListener('click', function() {
-    const descriptionField = document.getElementById('description');
-    let prefix = descriptionField.value.trim();
+document.getElementById('pick-btn').addEventListener('click', function () {
+  const descriptionField = document.getElementById('description');
+  const raw = descriptionField.value.trim();
 
-    if (!prefix) {
-        prefix = 'A'; // default prefix
-    }
+  // Default if empty
+  if (!raw) {
+    const defPrefix = 'A';
+    if (prefixCounts[defPrefix] == null) prefixCounts[defPrefix] = 1;
+    const fullDescription = `${defPrefix}${prefixCounts[defPrefix]++}`;
+    return savePick(fullDescription, defPrefix);
+  }
 
-    // Strip numbers if user typed like G12 → keep just G
-    prefix = prefix.replace(/[0-9]/g, '');
+  // Parse: prefix + optional trailing number (e.g., "G10", "Tree7", "P")
+  const m = raw.match(/^([^\d]+)(\d+)?$/); // non-digits as prefix, optional trailing number
+  let prefix, counter;
 
-    // Initialize prefix count if missing
-    if (!prefixCounts[prefix]) {
-        prefixCounts[prefix] = 1;
-    }
+  if (m) {
+    prefix = m[1];
+    const specified = m[2] != null ? parseInt(m[2], 10) : null;
 
-    // Use the current counter for saving
-    const fullDescription = `${prefix}${prefixCounts[prefix]}`;
-    prefixCounts[prefix]++; // increment for next
+    // Initialize counter if needed
+    if (prefixCounts[prefix] == null) prefixCounts[prefix] = 1;
 
-    // Save the picked coordinate
+    // If user typed a number, use it; otherwise use next counter
+    counter = (specified != null) ? specified : prefixCounts[prefix];
+
+    const fullDescription = `${prefix}${counter}`;
+
+    // Next value for this prefix
+    prefixCounts[prefix] = counter + 1;
+
+    return savePick(fullDescription, prefix);
+  } else {
+    // If raw doesn't match (e.g., numbers-only), treat the whole raw as prefix
+    const fallbackPrefix = raw;
+    if (prefixCounts[fallbackPrefix] == null) prefixCounts[fallbackPrefix] = 1;
+    const fullDescription = `${fallbackPrefix}${prefixCounts[fallbackPrefix]++}`;
+    return savePick(fullDescription, fallbackPrefix);
+  }
+
+  function savePick(fullDescription, prefixForNext) {
     const accuracy = document.getElementById('accuracy').value;
-    if (accuracy) {
-        const coordData = {
-            description: fullDescription,
-            accuracy: accuracy,
-            northing: document.getElementById('northing').value, 
-            easting: document.getElementById('easting').value,   
-            height: document.getElementById('height').value,     
-            timestamp: new Date().toISOString()
-        };
-        storedCoordinates.push(coordData);
-
-        // Show all picked descriptions in a line
-        const descriptionsBox = document.getElementById('descriptions-box');
-        descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
-
-        vibrateDevice();
-
-        // 👉 Pre-fill NEXT value for the user to see
-        descriptionField.value = `${prefix}${prefixCounts[prefix]}`;
-    } else {
-        alert('Please wait for a valid GPS fix.');
+    if (!accuracy) {
+      alert('Please wait for a valid GPS fix.');
+      return;
     }
+
+    const coordData = {
+      description: fullDescription,
+      accuracy: accuracy,
+      northing: document.getElementById('northing').value,
+      easting: document.getElementById('easting').value,
+      height: document.getElementById('height').value,
+      timestamp: new Date().toISOString()
+    };
+    storedCoordinates.push(coordData);
+
+    // Show all picked descriptions in one line
+    const descriptionsBox = document.getElementById('descriptions-box');
+    descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
+
+    vibrateDevice();
+
+    // Prefill the NEXT value (preview)
+    descriptionField.value = `${prefixForNext}${prefixCounts[prefixForNext]}`;
+  }
 });
+
 
 
 
