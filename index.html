@@ -209,6 +209,33 @@ let prefixCounts = {}; // Track counts per prefix
       <p><strong>Height (m):</strong> ${parseFloat(height).toFixed(3)}</p>
       <p><strong>Zone:</strong> ${result.zone}</p>
     `;
+// Live distance from previous picked point (updates each GPS fix)
+(function updateLiveDistance() {
+  const distanceBox = document.getElementById('distance-box');
+  if (!distanceBox) return;
+
+  if (storedCoordinates.length === 0) {
+    distanceBox.innerHTML = '<strong>Distance from previous:</strong> —';
+    return;
+  }
+
+  const last = storedCoordinates[storedCoordinates.length - 1];
+
+  // Previous (picked) UTM in meters
+  const ePrev = parseFloat(last.easting);
+  const nPrev = parseFloat(last.northing);
+
+  // Current live UTM (strings with toFixed(3) → parse to numbers)
+  const eCurr = parseFloat(result.easting);
+  const nCurr = parseFloat(result.northing);
+
+  if ([ePrev, nPrev, eCurr, nCurr].every(Number.isFinite)) {
+    const d = Math.hypot(eCurr - ePrev, nCurr - nPrev); // meters
+    distanceBox.innerHTML = `<strong>Distance from previous:</strong> ${d.toFixed(2)} m`;
+  } else {
+    distanceBox.innerHTML = '<strong>Distance from previous:</strong> —';
+  }
+})();
 
     // Change background color and button color based on accuracy
     if (accuracy < 11) {
