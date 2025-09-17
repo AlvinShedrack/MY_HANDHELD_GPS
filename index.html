@@ -267,51 +267,43 @@ let prefixCounts = {}; // Track counts per prefix
 // Store coordinates when pick button is clicked
 document.getElementById('pick-btn').addEventListener('click', function () {
   const descriptionField = document.getElementById('description');
-  const raw = descriptionField.value.trim();
+  let raw = descriptionField.value.trim();
 
-  // Default if empty
-  if (!raw) {
-    const defPrefix = 'A';
-    if (prefixCounts[defPrefix] == null) prefixCounts[defPrefix] = 1;
-    const fullDescription = `${defPrefix}${prefixCounts[defPrefix]++}`;
-    return savePick(fullDescription, defPrefix);
+  // Default prefix if user leaves it empty
+  if (!raw) raw = '1';
+
+  let prefix = '';
+  let number = null;
+
+  // Case 1: only numbers (e.g., "5")
+  if (/^\d+$/.test(raw)) {
+    number = parseInt(raw, 10);
+    prefix = ''; // pure numbers, no prefix
   }
-
-  // Parse: prefix + optional trailing number (e.g., "G10", "Tree7", "P")
-  const m = raw.match(/^([^\d]+)(\d+)?$/); // non-digits as prefix, optional trailing number
-  let prefix, counter;
-
-  if (m) {
-    prefix = m[1];
-    const specified = m[2] != null ? parseInt(m[2], 10) : null;
-
-    // Initialize counter if needed
-    if (prefixCounts[prefix] == null) prefixCounts[prefix] = 1;
-
-    // If user typed a number, use it; otherwise use next counter
-    counter = (specified != null) ? specified : prefixCounts[prefix];
-
-    const fullDescription = `${prefix}${counter}`;
-
-    // Next value for this prefix
-    prefixCounts[prefix] = counter + 1;
-
-    return savePick(fullDescription, prefix);
-  } else {
-    // If raw doesn't match (e.g., numbers-only), treat the whole raw as prefix
-    const fallbackPrefix = raw;
-    if (prefixCounts[fallbackPrefix] == null) prefixCounts[fallbackPrefix] = 1;
-    const fullDescription = `${fallbackPrefix}${prefixCounts[fallbackPrefix]++}`;
-    return savePick(fullDescription, fallbackPrefix);
-  }
-
-  function savePick(fullDescription, prefixForNext) {
-    const accuracy = document.getElementById('accuracy').value;
-    if (!accuracy) {
-      alert('Please wait for a valid GPS fix.');
-      return;
+  // Case 2: prefix + optional number (e.g., "G10" or "Tree7" or "G")
+  else {
+    const m = raw.match(/^([^\d]+)(\d+)?$/);
+    if (m) {
+      prefix = m[1];
+      number = m[2] ? parseInt(m[2], 10) : null;
+    } else {
+      // Fallback: treat everything as prefix
+      prefix = raw;
     }
+  }
 
+  // Init prefix counter if needed
+  if (!prefixCounts[prefix]) prefixCounts[prefix] = 1;
+
+  // If user typed a number, use it; otherwise use next from counter
+  const counter = number != null ? number : prefixCounts[prefix];
+  const fullDescription = `${prefix}${counter}`;
+
+  // Increment for next time
+  prefixCounts[prefix] = counter + 1;
+
+  const accuracy = document.getElementById('accuracy').value;
+  if (accuracy) {
     const coordData = {
       description: fullDescription,
       accuracy: accuracy,
@@ -322,14 +314,16 @@ document.getElementById('pick-btn').addEventListener('click', function () {
     };
     storedCoordinates.push(coordData);
 
-    // Show all picked descriptions in one line
+    // Show picked descriptions
     const descriptionsBox = document.getElementById('descriptions-box');
     descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
 
     vibrateDevice();
 
-    // Prefill the NEXT value (preview)
-    descriptionField.value = `${prefixForNext}${prefixCounts[prefixForNext]}`;
+    // 👉 Pre-fill the NEXT number or prefix+number
+    descriptionField.value = `${prefix}${prefixCounts[prefix]}`;
+  } else {
+    alert('Please wait for a valid GPS fix.');
   }
 });
 
