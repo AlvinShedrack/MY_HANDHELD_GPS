@@ -270,26 +270,23 @@ document.getElementById('pick-btn').addEventListener('click', function() {
     let prefix = descriptionField.value.trim();
 
     if (!prefix) {
-        prefix = 'A'; // Default prefix if input is empty
+        prefix = 'A'; // default prefix
     }
 
-    // If prefix already contains a number (like A1), strip the numbers
+    // Strip numbers if user typed like G12 → keep just G
     prefix = prefix.replace(/[0-9]/g, '');
 
-    // Initialize count for this prefix if needed
+    // Initialize prefix count if missing
     if (!prefixCounts[prefix]) {
         prefixCounts[prefix] = 1;
     }
 
-    // Generate description correctly (A1, A2, A3…)
+    // Use the current counter for saving
     const fullDescription = `${prefix}${prefixCounts[prefix]}`;
-    prefixCounts[prefix]++; // Increment for next pick
+    prefixCounts[prefix]++; // increment for next
 
-    // Update the input field with the latest description
-    descriptionField.value = fullDescription;
-
+    // Save the picked coordinate
     const accuracy = document.getElementById('accuracy').value;
-
     if (accuracy) {
         const coordData = {
             description: fullDescription,
@@ -301,15 +298,19 @@ document.getElementById('pick-btn').addEventListener('click', function() {
         };
         storedCoordinates.push(coordData);
 
-        // Show all descriptions in one line separated by commas
+        // Show all picked descriptions in a line
         const descriptionsBox = document.getElementById('descriptions-box');
         descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
 
         vibrateDevice();
+
+        // 👉 Pre-fill NEXT value for the user to see
+        descriptionField.value = `${prefix}${prefixCounts[prefix]}`;
     } else {
         alert('Please wait for a valid GPS fix.');
     }
 });
+
 
 
 
