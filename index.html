@@ -12,13 +12,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 24px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    body { margin: 24px; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: background-color 0.3s; }
     h1 { font-size: 1.25rem; margin: 0 0 12px; }
     .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; width: 320px; }
     .grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
     label { font-size: .9rem; color: #374151; display: block; margin-bottom: 4px; }
     input, button, textarea { 
-      width: 80%; /* Reduced the width from 100% to 80% */
+      width: 80%; 
       padding: 10px 12px; 
       border-radius: 10px; 
       border: 1px solid #d1d5db; 
@@ -28,43 +28,18 @@
       border-color: #6366f1; 
       box-shadow: 0 0 0 3px rgba(99,102,241,.15); 
     }
-    .result-box {
-  background: #f3f4f6;
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-top: 12px;
-  max-height: 250px;
-  overflow-y: auto;
-}
-
-.result-box div {
-  border-radius: 6px;
-  padding: 6px 8px;
-  margin-bottom: 4px;
-  color: #111;
-}
-
-    footer {
-      text-align: center;
-      margin: 20px 0;
-      font-size: 0.9rem;
-      color: #4B0082;
-      margin-top: 20px;
-    }
+    footer { text-align: center; margin: 20px 0; font-size: 0.9rem; color: #4B0082; }
     .status { text-align: center; margin-top: 12px; padding: 8px 0; }
     .result-box { background: #f3f4f6; padding: 8px 12px; border-radius: 8px; margin-top: 12px; }
     .copyable { cursor: pointer; color: blue; }
     .btn { cursor: pointer; border: 1px solid #d1d5db; background: #111827; color: #fff; }
     .btn.green { background-color: #4caf50; color: white; padding: 15px; border-radius: 50%; margin: 20px auto; font-size: 16px; }
     .btn.secondary { background: #f3f4f6; color: #111827; }
-    .circular-button { border-radius: 50%; width: 80px; height: 80px; background-color: #f3f4f6; color: black; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; }
+    .circular-button { border-radius: 50%; width: 80px; height: 80px; background-color: #f3f4f6; color: black; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; transition: background-color 0.3s, color 0.3s; }
     .csv-box { margin-top: 20px; }
     .error { color: red; }
-
-    /* Hide the Northing, Easting, and Height fields */
-    .hidden-fields {
-      display: none; /* Hide these fields from the UI but keep them in the HTML */
-    }
+    /* Hidden fields */
+    .hidden-fields { display: none; }
   </style>
 </head>
 <body>
@@ -81,10 +56,9 @@
         <textarea id="description" placeholder="Enter description" rows="1" maxlength="10"></textarea>
       </div>
 
-      <!-- Circular Button to Pick Coordinates -->
       <div class="circular-button" id="pick-btn">PICK</div>
 
-      <!-- Hidden Dynamic Fields for Northing, Easting, and Height -->
+      <!-- Hidden fields -->
       <div class="hidden-fields">
         <label for="northing">Northing (N)</label>
         <input id="northing" type="number" step="0.000001" placeholder="Northing" readonly />
@@ -102,220 +76,129 @@
         <span id="status" class="pill">Waiting for GPS fix...</span>
       </div>
 
-      <div class="result-box" id="result-box">
-        <!-- Display the result here -->
-      </div>
+      <div class="result-box" id="result-box"></div>
 
-      <!-- Download CSV Button -->
       <button class="btn secondary" id="download-btn">Download CSV</button>
-
       <div id="error-message" class="error"></div>
     </div>
   </div>
+
   <footer>
     Created by <strong>Alvin Shedrack</strong> © 2025
   </footer>
 
   <script>
-  const storedCoordinates = [];
-  let descriptionCount = 1;
+    const storedCoordinates = [];
+    let descriptionCount = 1;
 
-  // Function to handle vibration
-  function vibrateDevice() {
-    if (navigator.vibrate) {
-      navigator.vibrate(100); // Vibrate for 100 milliseconds
-    } else {
-      console.log("Vibration is not supported on this device.");
-    }
-  }
-
-  function ddToUTM(lat, lon) {
-    const a = 6378137.0;
-    const f = 1 / 298.257223563;
-    const k0 = 0.9996;
-    const e = Math.sqrt(f * (2 - f));
-
-    const zone = Math.floor((lon + 180) / 6) + 1;
-    const lambda0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
-
-    const phi = lat * Math.PI / 180;
-    const lambda = lon * Math.PI / 180;
-
-    const n = a / Math.sqrt(1 - Math.pow(e * Math.sin(phi), 2));
-    const t = Math.pow(Math.tan(phi), 2);
-    const c = Math.pow(e, 2) / (1 - Math.pow(e, 2)) * Math.pow(Math.cos(phi), 2);
-    const A = Math.cos(phi) * (lambda - lambda0);
-
-    const m = a * ((1 - Math.pow(e, 2)/4 - 3*Math.pow(e, 4)/64 - 5*Math.pow(e, 6)/256) * phi
-                - (3*Math.pow(e, 2)/8 + 3*Math.pow(e, 4)/32 + 45*Math.pow(e, 6)/1024) * Math.sin(2*phi)
-                + (15*Math.pow(e, 4)/256 + 45*Math.pow(e, 6)/1024) * Math.sin(4*phi)
-                - (35*Math.pow(e, 6)/3072) * Math.sin(6*phi));
-
-    const easting = 500000 + k0 * n * (A + (1 - t + c) * Math.pow(A, 3)/6 +
-                      (5 - 18*t + t*t + 72*c - 58*(Math.pow(e, 2)/(1 - Math.pow(e, 2)))) * Math.pow(A, 5)/120)-83.86;
-
-    const northing = k0 * (m + n * Math.tan(phi) * (Math.pow(A, 2)/2 +
-                       (5 - t + 9*c + 4*c*c) * Math.pow(A, 4)/24 +
-                       (61 - 58*t + t*t + 600*c - 330*(Math.pow(e, 2)/(1 - Math.pow(e, 2)))) * Math.pow(A, 6)/720))+296.89;
-
-    const northingAdjusted = lat < 0 ? northing + 10000000 : northing;
-    const hemisphere = lat < 0 ? 'S' : 'N';
-
-    return {
-      zone: zone + hemisphere,
-      easting: easting.toFixed(3),
-      northing: northingAdjusted.toFixed(3)
-    };
-  }
-
-  function handleGeoSuccess(pos) {
-    const c = pos.coords;
-    console.log('Geolocation Success:', c);
-
-    const height = (c.altitude !== null && c.altitude !== undefined) ? c.altitude : 'N/A';
-    const result = ddToUTM(c.latitude, c.longitude);
-    const accuracy = c.accuracy;
-
-    // Set the height and round to 3 decimal places
-    document.getElementById('height').value = parseFloat(height).toFixed(3); // Rounded to 3 decimal places
-    document.getElementById('accuracy').value = accuracy.toFixed(0);
-    document.getElementById('northing').value = result.northing;
-    document.getElementById('easting').value = result.easting;
-
-    document.getElementById('result-box').innerHTML = `
-      <p><strong>UTM Easting:</strong> ${result.easting}</p>
-      <p><strong>UTM Northing:</strong> ${result.northing}</p>
-      <p><strong>Height (m):</strong> ${parseFloat(height).toFixed(3)}</p>
-      <p><strong>Zone:</strong> ${result.zone}</p>
-    `;
-
-    // Change background color and button color based on accuracy
-    if (accuracy < 11) {
-      document.body.style.backgroundColor = '#a5d6a7'; // Darker green
-      document.getElementById('pick-btn').style.backgroundColor = '#388e3c'; // Dark green button
-      document.getElementById('pick-btn').style.color = '#800080'; // Purple text color for "PICK"
-    } else if (accuracy < 31) {
-      document.body.style.backgroundColor = '#fff9c4'; // Light yellow color
-      document.getElementById('pick-btn').style.backgroundColor = '#FF5733'; // Dark orange button
-      document.getElementById('pick-btn').style.color = '#800080'; // Purple text color for "PICK"
-    } else {
-      document.body.style.backgroundColor = '#FFB6C1'; // Light pink for accuracy > 31m
-      document.getElementById('pick-btn').style.backgroundColor = '#9e9e9e'; // Grey button
-      document.getElementById('pick-btn').style.color = '#000000'; // Black text color for "PICK"
+    // Vibration
+    function vibrateDevice() {
+      if (navigator.vibrate) navigator.vibrate(100);
     }
 
-    document.getElementById('status').textContent = 'GPS Tracking (Arc1960 36N)';
-  }
-
-  function handleGeoError(err) {
-    const errorMsg = {
-      1: 'Permission denied. Enable location for this page.',
-      2: 'Position unavailable. Move to open sky, enable GPS.',
-      3: 'Timeout. Try again.'
-    };
-    document.getElementById('status').textContent = errorMsg[err.code] || 'Geolocation error.';
-  }
-
-  // Request permission and start tracking location
-  function startTracking() {
-    if ('geolocation' in navigator) {
-      // Check if permission is granted
-      navigator.permissions.query({ name: 'geolocation' }).then(function(permissionStatus) {
-        if (permissionStatus.state === 'granted') {
-          // Permission already granted, start tracking
-          navigator.geolocation.watchPosition(handleGeoSuccess, handleGeoError, {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0
-          });
-        } else if (permissionStatus.state === 'prompt') {
-          // Request permission if it's in prompt state
-          navigator.geolocation.watchPosition(handleGeoSuccess, handleGeoError, {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0
-          });
-        } else {
-          // Permission denied
-          document.getElementById('status').textContent = 'Permission denied. Enable location for this page.';
-        }
-      });
-    } else {
-      document.getElementById('status').textContent = 'Geolocation not supported in this browser.';
-    }
-  }
-
-  // Store coordinates when pick button is clicked
-  document.getElementById('pick-btn').addEventListener('click', function() {
-    let description = document.getElementById('description').value.trim();
-    if (!description) {
-      description = `A${descriptionCount++}`; // Incremental description A1, A2, A3, etc.
-    }
-    document.getElementById('description').value = description; // Update the description field
-
-    const accuracy = document.getElementById('accuracy').value;
-
-    if (accuracy) {
-      storedCoordinates.push({
-        description: description,
-        accuracy: accuracy,
-        northing: document.getElementById('northing').value, // Hidden but included in the data
-        easting: document.getElementById('easting').value,   // Hidden but included in the data
-        height: document.getElementById('height').value,     // Hidden but included in the data
-        timestamp: new Date().toISOString()
-      });
-
-      // Trigger vibration on coordinate pick
-      vibrateDevice();
-
-      alert('Coordinates stored!');
-    } else {
-      alert('Please wait for a valid GPS fix.');
-    }
-  });
-
-  // Download stored coordinates as CSV
-  document.getElementById('download-btn').addEventListener('click', function() {
-    if (storedCoordinates.length === 0) {
-      alert('No coordinates stored yet.');
-      return;
+    // DD → UTM
+    function ddToUTM(lat, lon) {
+      const a = 6378137.0;
+      const f = 1 / 298.257223563;
+      const k0 = 0.9996;
+      const e = Math.sqrt(f * (2 - f));
+      const zone = Math.floor((lon + 180) / 6) + 1;
+      const lambda0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+      const phi = lat * Math.PI / 180;
+      const lambda = lon * Math.PI / 180;
+      const n = a / Math.sqrt(1 - Math.pow(e * Math.sin(phi), 2));
+      const t = Math.pow(Math.tan(phi), 2);
+      const c = Math.pow(e, 2)/(1 - Math.pow(e,2)) * Math.pow(Math.cos(phi),2);
+      const A = Math.cos(phi)*(lambda - lambda0);
+      const m = a*((1-Math.pow(e,2)/4-3*Math.pow(e,4)/64-5*Math.pow(e,6)/256)*phi
+                -(3*Math.pow(e,2)/8 +3*Math.pow(e,4)/32+45*Math.pow(e,6)/1024)*Math.sin(2*phi)
+                +(15*Math.pow(e,4)/256 + 45*Math.pow(e,6)/1024)*Math.sin(4*phi)
+                -(35*Math.pow(e,6)/3072)*Math.sin(6*phi));
+      const easting = 500000 + k0 * n * (A + (1-t+c)*Math.pow(A,3)/6 + 
+                     (5-18*t+t*t+72*c-58*(Math.pow(e,2)/(1-Math.pow(e,2))))*Math.pow(A,5)/120)-83.86;
+      const northing = k0 * (m + n*Math.tan(phi)*(Math.pow(A,2)/2 + 
+                     (5-t+9*c+4*c*c)*Math.pow(A,4)/24 +
+                     (61-58*t+t*t+600*c-330*(Math.pow(e,2)/(1-Math.pow(e,2))))*Math.pow(A,6)/720))+296.89;
+      const northingAdjusted = lat < 0 ? northing + 10000000 : northing;
+      const hemisphere = lat < 0 ? 'S' : 'N';
+      return { zone: zone+hemisphere, easting: easting.toFixed(3), northing: northingAdjusted.toFixed(3) };
     }
 
-    let csvContent = 'Description,Accuracy,Northing,Easting,Height,Timestamp\n';
-    storedCoordinates.forEach(function(coord) {
-      csvContent += `${coord.description},${coord.accuracy},${coord.northing},${coord.easting},${coord.height},${coord.timestamp}\n`;
+    function handleGeoSuccess(pos) {
+      const c = pos.coords;
+      const height = c.altitude ?? 0;
+      const accuracy = c.accuracy;
+      const result = ddToUTM(c.latitude, c.longitude);
+
+      document.getElementById('accuracy').value = accuracy.toFixed(0);
+      document.getElementById('northing').value = result.northing;
+      document.getElementById('easting').value = result.easting;
+      document.getElementById('height').value = height.toFixed(3);
+
+      // Change button color based on accuracy
+      const pickBtn = document.getElementById('pick-btn');
+      if (accuracy > 31) pickBtn.style.backgroundColor = 'lightgrey';
+      else if (accuracy > 5) pickBtn.style.backgroundColor = 'lightorange';
+      else pickBtn.style.backgroundColor = 'lightgreen';
+
+      document.getElementById('status').innerText = 'GPS Ready';
+    }
+
+    function handleGeoError(err) {
+      document.getElementById('error-message').innerText = err.message;
+    }
+
+    document.getElementById('pick-btn').addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert('Geolocation not supported!');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(pos => {
+        handleGeoSuccess(pos);
+        vibrateDevice();
+
+        let desc = document.getElementById('description').value.trim();
+        if (!desc) desc = `Point_${descriptionCount++}`;
+        
+        storedCoordinates.push({
+          description: desc,
+          northing: document.getElementById('northing').value,
+          easting: document.getElementById('easting').value,
+          height: document.getElementById('height').value,
+          accuracy: document.getElementById('accuracy').value
+        });
+
+        document.getElementById('result-box').innerText = 
+          `Saved: ${desc} | N: ${document.getElementById('northing').value} | E: ${document.getElementById('easting').value} | H: ${document.getElementById('height').value}`;
+      }, handleGeoError, { enableHighAccuracy: true });
     });
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'coordinates.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  });
+    document.getElementById('download-btn').addEventListener('click', () => {
+      if (!storedCoordinates.length) return alert('No points saved!');
+      let csvContent = "data:text/csv;charset=utf-8,Description,Northing,Easting,Height,Accuracy\n";
+      storedCoordinates.forEach(r => {
+        csvContent += `${r.description},${r.northing},${r.easting},${r.height},${r.accuracy}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "coordinates.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
 
-  // Prevent refreshing or navigating away with unsaved data
-  window.addEventListener('beforeunload', function (event) {
-    if (storedCoordinates.length > 0) {
-      event.preventDefault(); // Prevent the refresh or navigate away action
-      event.returnValue = ''; // Some browsers require this for the prompt to appear
+    // Prevent accidental refresh
+    window.addEventListener("beforeunload", (e) => { e.preventDefault(); e.returnValue = ""; });
+
+    // Register service worker for PWA offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('Service Worker registered ✅', reg))
+        .catch(err => console.error('Service Worker failed ❌', err));
+      });
     }
-  });
-
-  // Start tracking when the page loads
-  startTracking();
-</script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => console.log('Service Worker registered ✅', reg))
-      .catch(err => console.error('Service Worker failed ❌', err));
-  });
-}
-</script>
+  </script>
 </body>
 </html>
