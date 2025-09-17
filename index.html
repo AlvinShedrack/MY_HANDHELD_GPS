@@ -11,27 +11,27 @@
   <title>My HandHeld GPS</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    :root { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; }
+    :root { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; font-weight: bold; }
     body { margin: 24px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
     h1 { font-size: 1.25rem; margin: 0 0 12px; }
-    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; width: 320px; }
-    .grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
-    label { font-size: .9rem; color: #374151; display: block; margin-bottom: 4px; }
+    .card { border: 6px solid #2f69db; border-radius: 22px; padding: 16px; width: 320px; }
+    .grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+    label { justify-content: center;font-size: 1.2rem; color: #03204e; display: block; margin-bottom: 4px; }
     input, button, textarea { 
       width: 80%; /* Reduced the width from 100% to 80% */
-      padding: 10px 12px; 
-      border-radius: 10px; 
-      border: 1px solid #d1d5db; 
+      padding: 10px 29px; 
+      border-radius: 10px; font-size: 1.2rem;
+      border: 6px solid #00b609; justify-content: center;
     }
     input:focus, button:focus, textarea:focus { 
-      outline: none; 
-      border-color: #6366f1; 
+      outline: none; justify-content: center;
+      border-color: #ca6200; 
       box-shadow: 0 0 0 3px rgba(99,102,241,.15); 
     }
     .result-box {
-  background: #f3f4f6;
+  background: #7e99cf;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 80px;
   margin-top: 12px;
   max-height: 250px;
   overflow-y: auto;
@@ -52,12 +52,12 @@
       margin-top: 20px;
     }
     .status { text-align: center; margin-top: 12px; padding: 8px 0; }
-    .result-box { background: #f3f4f6; padding: 8px 12px; border-radius: 8px; margin-top: 12px; }
+    .result-box { background: #f3f4f6; padding: 6px 12px; border-radius: 8px; margin-top: 12px; }
     .copyable { cursor: pointer; color: blue; }
-    .btn { cursor: pointer; border: 1px solid #d1d5db; background: #111827; color: #fff; }
+    .btn {   font-weight: bold; font-size: 18px; width: 100%;   padding: 8px 12px; cursor: pointer; border: 3px solid #094fb9; background: #07090c; color: #ce1818; }
     .btn.green { background-color: #4caf50; color: white; padding: 15px; border-radius: 50%; margin: 20px auto; font-size: 16px; }
     .btn.secondary { background: #f3f4f6; color: #111827; }
-    .circular-button { border-radius: 50%; width: 80px; height: 80px; background-color: #f3f4f6; color: black; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; }
+    .circular-button {  font-weight: bold; border-radius: 50%; width: 120px; height: 120px; background-color: #f3f4f6; color: black; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; }
     .csv-box { margin-top: 20px; }
     .error { color: red; }
 
