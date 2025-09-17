@@ -136,6 +136,7 @@
   <script>
   const storedCoordinates = [];
   let descriptionCount = 1;
+let prefixCounts = {}; // Track counts per prefix
 
   // Function to handle vibration
   function vibrateDevice() {
@@ -265,17 +266,33 @@
   // Store coordinates when pick button is clicked
 // Store coordinates when pick button is clicked
 document.getElementById('pick-btn').addEventListener('click', function() {
-    let description = document.getElementById('description').value.trim();
-    if (!description) {
-        description = `A${descriptionCount++}`; // Incremental description A1, A2, A3, etc.
+    const descriptionField = document.getElementById('description');
+    let prefix = descriptionField.value.trim();
+
+    if (!prefix) {
+        prefix = 'A'; // Default prefix if input is empty
     }
-    document.getElementById('description').value = description; // Update the description field
+
+    // If prefix already contains a number (like A1), strip the numbers
+    prefix = prefix.replace(/[0-9]/g, '');
+
+    // Initialize count for this prefix if needed
+    if (!prefixCounts[prefix]) {
+        prefixCounts[prefix] = 1;
+    }
+
+    // Generate description correctly (A1, A2, A3…)
+    const fullDescription = `${prefix}${prefixCounts[prefix]}`;
+    prefixCounts[prefix]++; // Increment for next pick
+
+    // Update the input field with the latest description
+    descriptionField.value = fullDescription;
 
     const accuracy = document.getElementById('accuracy').value;
 
     if (accuracy) {
         const coordData = {
-            description: description,
+            description: fullDescription,
             accuracy: accuracy,
             northing: document.getElementById('northing').value, 
             easting: document.getElementById('easting').value,   
@@ -284,18 +301,18 @@ document.getElementById('pick-btn').addEventListener('click', function() {
         };
         storedCoordinates.push(coordData);
 
+        // Show all descriptions in one line separated by commas
+        const descriptionsBox = document.getElementById('descriptions-box');
+        descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
 
-// Update the descriptions-box to show all descriptions in a single line separated by commas
-const descriptionsBox = document.getElementById('descriptions-box');
-descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
-
-
-        // Trigger vibration on coordinate pick
         vibrateDevice();
     } else {
         alert('Please wait for a valid GPS fix.');
     }
 });
+
+
+
 
 
   // Download stored coordinates as CSV
