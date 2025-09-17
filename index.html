@@ -250,9 +250,6 @@
 
   // Store coordinates when pick button is clicked
 // Store coordinates when pick button is clicked
-const storedCoordinates = [];
-let descriptionCount = 1;
-
 document.getElementById('pick-btn').addEventListener('click', function() {
     let description = document.getElementById('description').value.trim();
     if (!description) {
@@ -273,9 +270,11 @@ document.getElementById('pick-btn').addEventListener('click', function() {
         };
         storedCoordinates.push(coordData);
 
-        // Update the descriptions-box to show all descriptions in a single line separated by commas
-        const descriptionsBox = document.getElementById('descriptions-box');
-        descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
+
+// Update the descriptions-box to show all descriptions in a single line separated by commas
+const descriptionsBox = document.getElementById('descriptions-box');
+descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
+
 
         // Trigger vibration on coordinate pick
         vibrateDevice();
@@ -283,7 +282,6 @@ document.getElementById('pick-btn').addEventListener('click', function() {
         alert('Please wait for a valid GPS fix.');
     }
 });
-
 
 
   // Download stored coordinates as CSV
