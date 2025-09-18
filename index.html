@@ -125,6 +125,23 @@
 
       <!-- Download CSV Button -->
       <button class="btn secondary" id="download-btn">Download CSV</button>
+<!-- Saved CSVs dropdown -->
+<div class="grid" style="margin-top:12px">
+  <label for="saved-csv-select">Saved CSVs</label>
+  <select id="saved-csv-select" style="width:100%">
+    <option value="">— Select a CSV —</option>
+  </select>
+
+  <div style="display:flex;gap:8px;margin-top:8px;">
+    <button class="btn" id="load-csv-btn">Load into app</button>
+    <button class="btn secondary" id="open-csv-btn">Open CSV</button>
+    <button class="btn secondary" id="delete-csv-btn">Delete</button>
+  </div>
+
+  <div id="csv-preview" class="result-box" style="margin-top:8px;">
+    <strong>Loaded CSV Preview:</strong>
+  </div>
+</div>
 
       <div id="error-message" class="error"></div>
     </div>
@@ -335,6 +352,18 @@ document.getElementById('pick-btn').addEventListener('click', function() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    // Save a record of this CSV to localStorage for the dropdown
+let savedCSVs = JSON.parse(localStorage.getItem('savedCSVs') || '[]');
+savedCSVs.push({
+  name: a.download,
+  content: csvContent,
+  timestamp: new Date().toISOString()
+});
+localStorage.setItem('savedCSVs', JSON.stringify(savedCSVs));
+
+// Refresh the dropdown
+renderSavedCSVsDropdown();
+
   });
 
   // Prevent refreshing or navigating away with unsaved data
@@ -347,6 +376,123 @@ document.getElementById('pick-btn').addEventListener('click', function() {
 
   // Start tracking when the page loads
   startTracking();
+  function renderSavedCSVsDropdown() {
+  const select = document.getElementById('saved-csv-select');
+  if (!select) return;
+
+  const savedCSVs = JSON.parse(localStorage.getItem('savedCSVs') || '[]');
+
+  // Reset options
+  select.innerHTML = '<option value="">— Select a CSV —</option>';
+
+  savedCSVs.forEach((csv, idx) => {
+    const opt = document.createElement('option');
+    opt.value = String(idx);
+    opt.textContent = `${csv.name} (${new Date(csv.timestamp).toLocaleString()})`;
+    select.appendChild(opt);
+  });
+}
+
+function getSelectedSavedCsv() {
+  const select = document.getElementById('saved-csv-select');
+  const idx = select.value === '' ? -1 : parseInt(select.value, 10);
+  if (idx < 0) return null;
+
+  const savedCSVs = JSON.parse(localStorage.getItem('savedCSVs') || '[]');
+  return savedCSVs[idx] || null;
+}
+
+function parseCsvToStoredCoordinates(csvText) {
+  // Basic CSV parsing (expects the header used by your exporter)
+  const rows = csvText.trim().split(/\r?\n/).map(r => r.split(','));
+  const headers = rows[0].map(h => h.trim());
+  const out = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    if (!rows[i] || rows[i].length < headers.length) continue;
+    const rec = {};
+    headers.forEach((h, j) => {
+      rec[h] = rows[i][j];
+    });
+    out.push(rec);
+  }
+  return out;
+}
+
+// Button: Load into app (parses CSV and fills storedCoordinates + preview)
+document.getElementById('load-csv-btn').addEventListener('click', () => {
+  const csv = getSelectedSavedCsv();
+  if (!csv) {
+    alert('Select a CSV first.');
+    return;
+  }
+
+  const parsed = parseCsvToStoredCoordinates(csv.content);
+
+  // Clear and repopulate your app’s array
+  storedCoordinates.length = 0;
+
+  // Map parsed records back to your internal keys
+  parsed.forEach(row => {
+    storedCoordinates.push({
+      description: row.Description,
+      accuracy: row.Accuracy,
+      northing: row.Northing,
+      easting: row.Easting,
+      height: row.Height,
+      timestamp: row.Timestamp
+    });
+  });
+
+  // Update the inline descriptions preview
+  const descriptionsBox = document.getElementById('descriptions-box');
+  if (descriptionsBox) {
+    descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
+  }
+
+  // Small CSV preview
+  const preview = document.getElementById('csv-preview');
+  if (preview) {
+    preview.innerHTML = `<strong>Loaded CSV Preview:</strong> ${storedCoordinates
+      .slice(0, 10)
+      .map(c => c.description)
+      .join(', ')}${storedCoordinates.length > 10 ? '…' : ''}`;
+  }
+
+  alert(`Loaded ${storedCoordinates.length} points from ${csv.name}`);
+});
+
+// Button: Open CSV (new tab)
+document.getElementById('open-csv-btn').addEventListener('click', () => {
+  const csv = getSelectedSavedCsv();
+  if (!csv) {
+    alert('Select a CSV first.');
+    return;
+  }
+  const blob = new Blob([csv.content], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank'); // opens in a new tab
+});
+
+// Button: Delete saved CSV
+document.getElementById('delete-csv-btn').addEventListener('click', () => {
+  const select = document.getElementById('saved-csv-select');
+  const idx = select.value === '' ? -1 : parseInt(select.value, 10);
+  if (idx < 0) {
+    alert('Select a CSV to delete.');
+    return;
+  }
+
+  const savedCSVs = JSON.parse(localStorage.getItem('savedCSVs') || '[]');
+  const removed = savedCSVs.splice(idx, 1);
+  localStorage.setItem('savedCSVs', JSON.stringify(savedCSVs));
+  renderSavedCSVsDropdown();
+
+  if (removed.length) {
+    alert(`Deleted ${removed[0].name}`);
+  }
+});
+
 </script>
 
 <script>

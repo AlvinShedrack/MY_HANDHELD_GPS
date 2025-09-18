@@ -1,0 +1,24 @@
+---------------------------------------------------
+Here are the ownership and the certification details
+of the My Handheld GPS 3.1
+---------------------------------------------------
+
+app_name - 						My Handheld GPS
+app_alias - 					myhandheldgps
+app_author_name - 				My Company
+app_author_organizational - 	My Company
+app_author_organization - 		My Company
+app_author_locality - 			My Company
+app_author_state - 				Kalungu
+app_author_country - 			Uganda
+app_password - 					FDt7BiNpmWH8
+app_versionName - 				versionName "3.1"
+app_versionCode - 				301
+
+---------------------------------------------------
+The certification was created by WebIntoApp.com at
+the Wednesday 17th of September 2025 05:30:01 PM
+
+https://webintoapp.com
+---------------------------------------------------
+
