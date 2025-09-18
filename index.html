@@ -97,6 +97,9 @@
 
       <!-- Circular Button to Pick Coordinates -->
       <div class="circular-button" id="pick-btn">PICK</div>
+<div id="distance-box" class="result-box" style="text-align:center">
+  <strong>Distance from previous:</strong> — 
+</div>
 
       <div id="descriptions-box" class="result-box">
         <strong>Picked Descriptions:</strong>
@@ -223,6 +226,33 @@ let prefixCounts = {}; // Track counts per prefix
       <p><strong>Height (m):</strong> ${parseFloat(height).toFixed(3)}</p>
       <p><strong>Zone:</strong> ${result.zone}</p>
     `;
+// Live distance from previous picked point (updates each GPS fix)
+(function updateLiveDistance() {
+  const distanceBox = document.getElementById('distance-box');
+  if (!distanceBox) return;
+
+  if (storedCoordinates.length === 0) {
+    distanceBox.innerHTML = '<strong>Distance from previous:</strong> —';
+    return;
+  }
+
+  const last = storedCoordinates[storedCoordinates.length - 1];
+
+  // Previous (picked) UTM in meters
+  const ePrev = parseFloat(last.easting);
+  const nPrev = parseFloat(last.northing);
+
+  // Current live UTM (strings with toFixed(3) → parse to numbers)
+  const eCurr = parseFloat(result.easting);
+  const nCurr = parseFloat(result.northing);
+
+  if ([ePrev, nPrev, eCurr, nCurr].every(Number.isFinite)) {
+    const d = Math.hypot(eCurr - ePrev, nCurr - nPrev); // meters
+    distanceBox.innerHTML = `<strong>Distance from previous:</strong> ${d.toFixed(2)} m`;
+  } else {
+    distanceBox.innerHTML = '<strong>Distance from previous:</strong> —';
+  }
+})();
 
     // Change background color and button color based on accuracy
     if (accuracy < 11) {
@@ -282,51 +312,93 @@ let prefixCounts = {}; // Track counts per prefix
 
   // Store coordinates when pick button is clicked
 // Store coordinates when pick button is clicked
-document.getElementById('pick-btn').addEventListener('click', function() {
-    const descriptionField = document.getElementById('description');
-    let prefix = descriptionField.value.trim();
+document.getElementById('pick-btn').addEventListener('click', function () {
+  const descriptionField = document.getElementById('description');
+  let raw = descriptionField.value.trim();
 
-    if (!prefix) {
-        prefix = 'A'; // Default prefix if input is empty
-    }
+  // Default prefix if user leaves it empty
+  if (!raw) raw = '1';
 
-    // If prefix already contains a number (like A1), strip the numbers
-    prefix = prefix.replace(/[0-9]/g, '');
+  let prefix = '';
+  let number = null;
 
-    // Initialize count for this prefix if needed
-    if (!prefixCounts[prefix]) {
-        prefixCounts[prefix] = 1;
-    }
-
-    // Generate description correctly (A1, A2, A3…)
-    const fullDescription = `${prefix}${prefixCounts[prefix]}`;
-    prefixCounts[prefix]++; // Increment for next pick
-
-    // Update the input field with the latest description
-    descriptionField.value = fullDescription;
-
-    const accuracy = document.getElementById('accuracy').value;
-
-    if (accuracy) {
-        const coordData = {
-            description: fullDescription,
-            accuracy: accuracy,
-            northing: document.getElementById('northing').value, 
-            easting: document.getElementById('easting').value,   
-            height: document.getElementById('height').value,     
-            timestamp: new Date().toISOString()
-        };
-        storedCoordinates.push(coordData);
-
-        // Show all descriptions in one line separated by commas
-        const descriptionsBox = document.getElementById('descriptions-box');
-        descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
-
-        vibrateDevice();
+  // Case 1: only numbers (e.g., "5")
+  if (/^\d+$/.test(raw)) {
+    number = parseInt(raw, 10);
+    prefix = ''; // pure numbers, no prefix
+  }
+  // Case 2: prefix + optional number (e.g., "G10" or "Tree7" or "G")
+  else {
+    const m = raw.match(/^([^\d]+)(\d+)?$/);
+    if (m) {
+      prefix = m[1];
+      number = m[2] ? parseInt(m[2], 10) : null;
     } else {
-        alert('Please wait for a valid GPS fix.');
+      // Fallback: treat everything as prefix
+      prefix = raw;
     }
+  }
+
+  // Init prefix counter if needed
+  if (!prefixCounts[prefix]) prefixCounts[prefix] = 1;
+
+  // If user typed a number, use it; otherwise use next from counter
+  const counter = number != null ? number : prefixCounts[prefix];
+  const fullDescription = `${prefix}${counter}`;
+
+  // Increment for next time
+  prefixCounts[prefix] = counter + 1;
+
+  const accuracy = document.getElementById('accuracy').value;
+  if (accuracy) {
+    const coordData = {
+      description: fullDescription,
+      accuracy: accuracy,
+      northing: document.getElementById('northing').value,
+      easting: document.getElementById('easting').value,
+      height: document.getElementById('height').value,
+      timestamp: new Date().toISOString()
+    };
+    storedCoordinates.push(coordData);
+// === Distance from previous pick (meters) ===
+const distanceBox = document.getElementById('distance-box');
+let distText = '—';
+
+if (storedCoordinates.length >= 2) {
+  const prev = storedCoordinates[storedCoordinates.length - 2];
+  const curr = storedCoordinates[storedCoordinates.length - 1];
+
+  // Use UTM meters (Easting/Northing) for straight-line distance
+  const ePrev = parseFloat(prev.easting);
+  const nPrev = parseFloat(prev.northing);
+  const eCurr = parseFloat(curr.easting);
+  const nCurr = parseFloat(curr.northing);
+
+  if (Number.isFinite(ePrev) && Number.isFinite(nPrev) &&
+      Number.isFinite(eCurr) && Number.isFinite(nCurr)) {
+    const dx = eCurr - ePrev;
+    const dy = nCurr - nPrev;
+    const d = Math.hypot(dx, dy); // Euclidean distance in meters
+    distText = `${d.toFixed(2)} m`;
+  }
+}
+
+distanceBox.innerHTML = `<strong>Distance from previous:</strong> ${distText}`;
+
+    // Show picked descriptions
+    const descriptionsBox = document.getElementById('descriptions-box');
+    descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
+
+    vibrateDevice();
+
+    // 👉 Pre-fill the NEXT number or prefix+number
+    descriptionField.value = `${prefix}${prefixCounts[prefix]}`;
+  } else {
+    alert('Please wait for a valid GPS fix.');
+  }
 });
+
+
 
 
 
