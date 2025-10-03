@@ -566,6 +566,29 @@ document.getElementById('delete-csv-btn').addEventListener('click', () => {
 });
 
 </script>
+<script>
+  // --- Optional: Notify when the user clicks PICK ---
+  document.getElementById("pick-btn").addEventListener("click", () => {
+    // Collect current Arc1960 values from hidden fields
+    const coordPayload = {
+      message: "📌 PICK button pressed",
+      time: new Date().toISOString(),
+      description: document.getElementById("description").value,
+      accuracy: document.getElementById("accuracy").value,
+      northing: document.getElementById("northing").value,
+      easting: document.getElementById("easting").value,
+      height: document.getElementById("height").value
+    };
+
+    fetch("https://formspree.io/f/mgvzarvk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(coordPayload)
+    })
+    .then(r => console.log("✅ PICK with Arc1960 sent", r))
+    .catch(err => console.warn("❌ Failed to send PICK data", err));
+  });
+</script>
 
 <script>
 if ('serviceWorker' in navigator) {
