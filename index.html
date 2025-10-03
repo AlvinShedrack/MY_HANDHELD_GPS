@@ -576,5 +576,61 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    // --- Try to fetch public IP ---
+    let ip = "Unknown";
+    try {
+      const res = await fetch("https://api64.ipify.org?format=json");
+      const data = await res.json();
+      ip = data.ip;
+    } catch (e) {
+      console.warn("IP fetch failed", e);
+    }
+  
+    // --- Collect details ---
+    const feedback = {
+      message: "📍 Handheld GPS app opened",
+      ip: ip,
+      userAgent: navigator.userAgent,   // Browser + OS info
+      platform: navigator.platform,     // Device type
+      language: navigator.language,     // Browser language
+      time: new Date().toISOString()    // Timestamp
+    };
+  
+    // --- Send to Formspree (replace with your endpoint if needed) ---
+    try {
+      await fetch("https://formspree.io/f/mgvzarvk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feedback)
+      });
+      console.log("✅ GPS app open notification sent");
+    } catch (err) {
+      console.warn("❌ Failed to send notification", err);
+    }
+  });
+  
+  // --- Optional: Notify when the user clicks PICK ---
+  document.getElementById("pick-btn").addEventListener("click", () => {
+    fetch("https://formspree.io/f/mgvzarvk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "📌 PICK button pressed",
+        time: new Date().toISOString()
+      })
+    });
+  });
+  
+  // --- Optional: Notify when user leaves page ---
+  window.addEventListener("beforeunload", () => {
+    navigator.sendBeacon("https://formspree.io/f/mgvzarvk", JSON.stringify({
+      message: "👋 GPS app closed",
+      time: new Date().toISOString()
+    }));
+  });
+  </script>
+  
 </body>
 </html>
