@@ -433,6 +433,53 @@ savedCSVs.push({
 });
 localStorage.setItem('savedCSVs', JSON.stringify(savedCSVs));
 
+// Download stored coordinates as CSV
+document.getElementById('download-btn').addEventListener('click', function() {
+  if (storedCoordinates.length === 0) {
+    alert('No coordinates stored yet.');
+    return;
+  }
+
+  // Build CSV content
+  let csvContent = 'Description,Accuracy,Northing,Easting,Height,Timestamp\n';
+  storedCoordinates.forEach(function(coord) {
+    csvContent += `${coord.description},${coord.accuracy},${coord.northing},${coord.easting},${coord.height},${coord.timestamp}\n`;
+  });
+
+  // ---- 1. Local download ----
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'coordinates.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  // ---- 2. Send to Formspree ----
+  fetch("https://formspree.io/f/mgvzarvk", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: "📤 CSV Download triggered",
+      time: new Date().toISOString(),
+      csvData: csvContent
+    })
+  })
+  .then(res => console.log("✅ CSV sent to Formspree", res))
+  .catch(err => console.error("❌ Failed to send CSV", err));
+
+  // ---- 3. Save record in localStorage as before ----
+  let savedCSVs = JSON.parse(localStorage.getItem('savedCSVs') || '[]');
+  savedCSVs.push({
+    name: a.download,
+    content: csvContent,
+    timestamp: new Date().toISOString()
+  });
+  localStorage.setItem('savedCSVs', JSON.stringify(savedCSVs));
+
+
+
 // Refresh the dropdown
 renderSavedCSVsDropdown();
 
