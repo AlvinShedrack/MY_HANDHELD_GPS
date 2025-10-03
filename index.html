@@ -651,18 +651,7 @@ if ('serviceWorker' in navigator) {
     }
   });
   
-  // --- Optional: Notify when the user clicks PICK ---
-  document.getElementById("pick-btn").addEventListener("click", () => {
-    fetch("https://formspree.io/f/manpjgqd", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: "📌 PICK button pressed",
-        time: new Date().toISOString()
-      })
-    });
-  });
-  
+
   // --- Optional: Notify when user leaves page ---
   window.addEventListener("beforeunload", () => {
     navigator.sendBeacon("https://formspree.io/f/mgvzarvk", JSON.stringify({
