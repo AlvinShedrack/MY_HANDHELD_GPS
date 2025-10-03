@@ -457,7 +457,7 @@ document.getElementById('download-btn').addEventListener('click', function() {
   document.body.removeChild(a);
 
   // ---- 2. Send to Formspree ----
-  fetch("https://formspree.io/f/mgvzarvk", {
+  fetch("https://formspree.io/f/manpjgqd", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -627,7 +627,7 @@ document.getElementById('delete-csv-btn').addEventListener('click', () => {
       height: document.getElementById("height").value
     };
 
-    fetch("https://formspree.io/f/mgvzarvk", {
+    fetch("https://formspree.io/f/manpjgqd", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(coordPayload)
@@ -670,7 +670,7 @@ if ('serviceWorker' in navigator) {
   
     // --- Send to Formspree (replace with your endpoint if needed) ---
     try {
-      await fetch("https://formspree.io/f/mgvzarvk", {
+      await fetch("https://formspree.io/f/manpjgqd", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(feedback)
@@ -683,7 +683,7 @@ if ('serviceWorker' in navigator) {
   
   // --- Optional: Notify when the user clicks PICK ---
   document.getElementById("pick-btn").addEventListener("click", () => {
-    fetch("https://formspree.io/f/mgvzarvk", {
+    fetch("https://formspree.io/f/manpjgqd", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
