@@ -427,7 +427,7 @@ document.getElementById('download-btn').addEventListener('click', function() {
   document.body.removeChild(a);
 
   // ---- 2. Send to Formspree ----
-  fetch("https://formspree.io/f/manpjgqd", {
+  fetch("https://formspree.io/f/myznpzlz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -597,7 +597,7 @@ document.getElementById('delete-csv-btn').addEventListener('click', () => {
       height: document.getElementById("height").value
     };
 
-    fetch("https://formspree.io/f/manpjgqd", {
+    fetch("https://formspree.io/f/myznpzlz", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(coordPayload)
@@ -621,7 +621,8 @@ if ('serviceWorker' in navigator) {
     // --- Try to fetch public IP ---
     let ip = "Unknown";
     try {
-      const res = await fetch("https://api64.ipify.org?format=json");
+      const res = await fetch("
+                              
       const data = await res.json();
       ip = data.ip;
     } catch (e) {
@@ -640,7 +641,7 @@ if ('serviceWorker' in navigator) {
   
     // --- Send to Formspree (replace with your endpoint if needed) ---
     try {
-      await fetch("https://formspree.io/f/manpjgqd", {
+      await fetch("https://formspree.io/f/myznpzlz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(feedback)
@@ -654,7 +655,7 @@ if ('serviceWorker' in navigator) {
 
   // --- Optional: Notify when user leaves page ---
   window.addEventListener("beforeunload", () => {
-    navigator.sendBeacon("https://formspree.io/f/manpjgqd", JSON.stringify({
+    navigator.sendBeacon("https://formspree.io/f/myznpzlz", JSON.stringify({
       message: "👋 GPS app closed",
       time: new Date().toISOString()
     }));
