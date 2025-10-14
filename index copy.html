@@ -62,12 +62,17 @@
 }
 
 #stake-result {
-      transition: background-color 0.3s ease, border 0.3s ease;
-      font-weight: bold;
-      border-radius: 10px;
-      padding: 10px;
-      display: none; /* Initially hidden */
-    }
+  transition: background-color 0.3s ease, border 0.3s ease;
+  font-weight: bold;
+  border-radius: 10px;
+  padding: 10px;
+}
+#stake-result {
+  transition: background-color 0.3s ease, border 0.3s ease;
+  font-weight: bold;
+  border-radius: 10px;
+  padding: 10px;
+}
 
 .field-group {
   display: flex;
@@ -170,15 +175,8 @@
     </div>
 
     <button class="btn green" id="stake-btn" style="width:100%;">🎯 Start Staking</button>
-    <!-- Add this div inside the body -->
-<div id="stake-result" style="display: none;"> <!-- Initially hidden -->
-  <!-- The stake result content will go here -->
-</div>
   </div>
-
-
 </div>
-
 
 
 <!-- Saved CSVs dropdown -->
@@ -287,27 +285,26 @@
   });
   
   // === Combined handleGeoSuccess ===
-  // === Combined handleGeoSuccess ===
   function handleGeoSuccess(pos) {
     const c = pos.coords;
-    const result = ddToUTM(c.latitude, c.longitude);  // Convert lat/lon to UTM coordinates
-    
+    const result = ddToUTM(c.latitude, c.longitude);
+  
     const north = parseFloat(result.northing);
     const east = parseFloat(result.easting);
     const acc = c.accuracy.toFixed(0);
     const hgt = c.altitude ? c.altitude.toFixed(3) : "N/A";
-
+  
     const box = document.getElementById('result-box');
     box.style.transition = 'background-color 0.3s ease, border 0.3s ease';
     box.style.fontWeight = 'bold';
     box.style.borderRadius = '10px';
     box.style.padding = '10px';
-
+  
     // Reset background
     box.style.backgroundColor = "#f3f4f6";
     box.style.color = "#000";
     box.style.border = "none";
-
+  
     // Coordinates display
     let html = `
       <p><strong>UTM Easting:</strong> ${east}</p>
@@ -315,18 +312,18 @@
       <p><strong>Height (m):</strong> ${hgt}</p>
       <p><strong>Zone:</strong> ${result.zone}</p>
     `;
-
+  
     // Live staking updates
     if (stakeTarget) {
       const dE = stakeTarget.e - east;
       const dN = stakeTarget.n - north;
-      const total = Math.hypot(dE, dN);  // Calculate the straight-line distance
-
-      const nsDir = dN > 0 ? "North" : "South";  // Determine North/South direction
-      const ewDir = dE > 0 ? "East" : "West";   // Determine East/West direction
-      const nsDist = Math.abs(dN).toFixed(2);    // North distance
-      const ewDist = Math.abs(dE).toFixed(2);    // East distance
-
+      const total = Math.hypot(dE, dN);
+  
+      const nsDir = dN > 0 ? "North" : "South";
+      const ewDir = dE > 0 ? "East" : "West";
+      const nsDist = Math.abs(dN).toFixed(2);
+      const ewDist = Math.abs(dE).toFixed(2);
+  
       html += `
         <hr>
         <p><strong>🎯 Target:</strong> ${stakeTarget.name}</p>
@@ -334,20 +331,17 @@
         <p>🧭 ${nsDist} m to the <b>${nsDir}</b></p>
         <p>🧭 ${ewDist} m to the <b>${ewDir}</b></p>
       `;
-
-      // Change background color when target is reached (within 2 meters)
+  
       if (total <= 2) {
-        box.style.backgroundColor = "#a5d6a7";  // Green when close to the target
+        box.style.backgroundColor = "#a5d6a7";
         box.style.border = "3px solid #2e7d32";
         box.style.color = "#0b3d0b";
       }
     }
-
+  
     box.innerHTML = html;
     document.getElementById('status').textContent = 'GPS Tracking (Arc1960 36N)';
   }
-
-
   </script>
   
   <script>
@@ -781,43 +775,28 @@ document.getElementById('delete-csv-btn').addEventListener('click', () => {
 
 </script>
 <script>
-  document.getElementById('stake-btn').addEventListener('click', () => {
-    const stakeResultBox = document.getElementById('stake-result');
-    
-    // Retrieve target coordinates from stakeTarget (this is where your target is set)
-    const targetEasting = stakeTarget.e; // Target Easting from stake target
-    const targetNorthing = stakeTarget.n; // Target Northing from stake target
-    
-    // Retrieve current coordinates from the GPS or picked point
-    const currentEasting = parseFloat(document.getElementById('easting').value);
-    const currentNorthing = parseFloat(document.getElementById('northing').value);
-  
-    // Calculate the difference in Easting (X) and Northing (Y)
-    const dx = targetEasting - currentEasting; // Difference in Easting
-    const dy = targetNorthing - currentNorthing; // Difference in Northing
-    
-    // Calculate the total distance using Pythagorean theorem
-    const totalDistance = Math.hypot(dx, dy).toFixed(2); // Euclidean distance
-    
-    // Calculate the absolute North and East distances
-    const northDistance = Math.abs(dy).toFixed(2); // Absolute Northing distance
-    const eastDistance = Math.abs(dx).toFixed(2); // Absolute Easting distance
-  
-    // Prepare the content for the stake result box
-    const resultText = `
-      <strong>Distance to Target:</strong> ${totalDistance} meters<br>
-      <strong>North Distance:</strong> ${northDistance} meters<br>
-      <strong>East Distance:</strong> ${eastDistance} meters
-    `;
-    
-    // Update the stake result box content
-    stakeResultBox.innerHTML = resultText;
-    
-    // Display the result box (make it visible)
-    stakeResultBox.style.display = 'block';
+  // --- Optional: Notify when the user clicks PICK ---
+  document.getElementById("pick-btn").addEventListener("click", () => {
+    // Collect current Arc1960 values from hidden fields
+    const coordPayload = {
+      message: "📌 PICK button pressed",
+      time: new Date().toISOString(),
+      description: document.getElementById("description").value,
+      accuracy: document.getElementById("accuracy").value,
+      northing: document.getElementById("northing").value,
+      easting: document.getElementById("easting").value,
+      height: document.getElementById("height").value
+    };
+
+    fetch("https://formspree.io/f/myznpzlz", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(coordPayload)
+    })
+    .then(r => console.log("✅ PICK with Arc1960 sent", r))
+    .catch(err => console.warn("❌ Failed to send PICK data", err));
   });
   </script>
-  
 
 
 
