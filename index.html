@@ -67,6 +67,12 @@
   border-radius: 10px;
   padding: 10px;
 }
+#stake-result {
+  transition: background-color 0.3s ease, border 0.3s ease;
+  font-weight: bold;
+  border-radius: 10px;
+  padding: 10px;
+}
 
 .field-group {
   display: flex;
@@ -148,10 +154,30 @@
       <!-- Download CSV Button -->
       <button class="btn secondary" id="download-btn">Download CSV</button>
       <!-- Stake Points Button -->
-<button class="btn green" id="stake-btn">Stake Points</button>
-<div id="stake-result" class="result-box" style="text-align:center; margin-top:10px;">
-  <strong>Stake Result:</strong> —
+
+<!-- Foldable Stake Section -->
+<div style="margin-top:20px;">
+  <button id="toggle-stake" class="btn green" style="width:100%;">⚙️ Stake Options</button>
+
+  <div id="stake-panel" style="display:none; margin-top:10px; border:2px solid #ccc; border-radius:10px; padding:15px; background:#f9f9f9;">
+    <label for="stake-method" style="font-weight:bold;">Select Staking Method:</label>
+    <select id="stake-method" class="btn secondary" style="width:100%; margin-bottom:10px;">
+      <option value="">— Choose Option —</option>
+      <option value="picked">Stake an already picked point</option>
+      <option value="manual">Enter coordinates manually</option>
+    </select>
+
+    <div id="picked-points-box" style="display:none; margin-bottom:10px;">
+      <label for="picked-point" style="font-weight:bold;">Choose a picked point:</label>
+      <select id="picked-point" class="btn secondary" style="width:100%;">
+        <option value="">— Select a Point —</option>
+      </select>
+    </div>
+
+    <button class="btn green" id="stake-btn" style="width:100%;">🎯 Start Staking</button>
+  </div>
 </div>
+
 
 <!-- Saved CSVs dropdown -->
 <div class="grid" style="margin-top:12px">
@@ -631,86 +657,147 @@ document.getElementById('delete-csv-btn').addEventListener('click', () => {
     .catch(err => console.warn("❌ Failed to send PICK data", err));
   });
   
-let stakeTarget = null; // store target point globally
+ 
+ 
+let stakeTarget = null;
 
-// === Stake / Find Point Button ===
-document.getElementById('stake-btn').addEventListener('click', () => {
-  const targetE = parseFloat(prompt("Enter target Easting (E):"));
-  const targetN = parseFloat(prompt("Enter target Northing (N):"));
+// === Toggle Stake Panel ===
+const toggleBtn = document.getElementById('toggle-stake');
+const stakePanel = document.getElementById('stake-panel');
 
-  if (!Number.isFinite(targetE) || !Number.isFinite(targetN)) {
-    alert('⚠️ Invalid input. Please enter numeric Northing and Easting values.');
-    return;
+toggleBtn.addEventListener('click', () => {
+  if (stakePanel.style.display === 'none') {
+    stakePanel.style.display = 'block';
+    toggleBtn.textContent = '⬆️ Hide Stake Options';
+  } else {
+    stakePanel.style.display = 'none';
+    toggleBtn.textContent = '⚙️ Stake Points';
   }
-
-  stakeTarget = { e: targetE, n: targetN };
-  alert(`✅ Target point set at E=${targetE}, N=${targetN}`);
 });
 
+// === Populate picked points dropdown ===
+function renderPickedPointsDropdown() {
+  const select = document.getElementById('picked-point');
+  select.innerHTML = '<option value="">— Select a Point —</option>';
+  storedCoordinates.forEach((coord, index) => {
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = `${coord.description} (E:${coord.easting}, N:${coord.northing})`;
+    select.appendChild(option);
+  });
+}
+
+// Show/hide depending on method
+document.getElementById('stake-method').addEventListener('change', (e) => {
+  const method = e.target.value;
+  const pickedBox = document.getElementById('picked-points-box');
+
+  if (method === 'picked') {
+    if (storedCoordinates.length === 0) {
+      alert('⚠️ No points have been picked yet.');
+      e.target.value = '';
+      pickedBox.style.display = 'none';
+      return;
+    }
+    pickedBox.style.display = 'block';
+    renderPickedPointsDropdown();
+  } else {
+    pickedBox.style.display = 'none';
+  }
+});
+
+// === Stake Button Logic ===
+document.getElementById('stake-btn').addEventListener('click', () => {
+  const method = document.getElementById('stake-method').value;
+
+  if (method === 'picked') {
+    const selectedIndex = document.getElementById('picked-point').value;
+    if (selectedIndex === '') {
+      alert('Please select a point to stake.');
+      return;
+    }
+
+    const point = storedCoordinates[selectedIndex];
+    stakeTarget = {
+      e: parseFloat(point.easting),
+      n: parseFloat(point.northing),
+      name: point.description
+    };
+    alert(`✅ Staking point "${stakeTarget.name}"`);
+  } else if (method === 'manual') {
+    const targetE = parseFloat(prompt("Enter target Easting (E):"));
+    const targetN = parseFloat(prompt("Enter target Northing (N):"));
+    if (!Number.isFinite(targetE) || !Number.isFinite(targetN)) {
+      alert("⚠️ Invalid input. Please enter numeric Northing and Easting values.");
+      return;
+    }
+    stakeTarget = { e: targetE, n: targetN, name: "Manual Point" };
+    alert(`✅ Target set at E=${targetE}, N=${targetN}`);
+  } else {
+    alert('Please select a staking method first.');
+  }
+});
+
+// === Combined handleGeoSuccess ===
 function handleGeoSuccess(pos) {
   const c = pos.coords;
   const result = ddToUTM(c.latitude, c.longitude);
 
-  // Update core data fields
-  document.getElementById('northing').value = result.northing;
-  document.getElementById('easting').value = result.easting;
-  document.getElementById('accuracy').value = c.accuracy.toFixed(0);
-  document.getElementById('height').value = c.altitude ? c.altitude.toFixed(3) : 'N/A';
+  const north = parseFloat(result.northing);
+  const east = parseFloat(result.easting);
+  const acc = c.accuracy.toFixed(0);
+  const hgt = c.altitude ? c.altitude.toFixed(3) : "N/A";
 
-  // ✅ Update main coordinate result box
-  const resultBox = document.getElementById('result-box');
-  resultBox.innerHTML = `
-    <p><strong>UTM Easting:</strong> ${result.easting}</p>
-    <p><strong>UTM Northing:</strong> ${result.northing}</p>
-    <p><strong>Height (m):</strong> ${document.getElementById('height').value}</p>
+  const box = document.getElementById('result-box');
+  box.style.transition = 'background-color 0.3s ease, border 0.3s ease';
+  box.style.fontWeight = 'bold';
+  box.style.borderRadius = '10px';
+  box.style.padding = '10px';
+
+  // Reset background
+  box.style.backgroundColor = "#f3f4f6";
+  box.style.color = "#000";
+  box.style.border = "none";
+
+  // Coordinates display
+  let html = `
+    <p><strong>UTM Easting:</strong> ${east}</p>
+    <p><strong>UTM Northing:</strong> ${north}</p>
+    <p><strong>Height (m):</strong> ${hgt}</p>
     <p><strong>Zone:</strong> ${result.zone}</p>
   `;
 
-  // ✅ Dynamic stake logic (only if user has set target)
+  // Live staking updates
   if (stakeTarget) {
-    const currE = parseFloat(result.easting);
-    const currN = parseFloat(result.northing);
-    const deltaE = stakeTarget.e - currE;
-    const deltaN = stakeTarget.n - currN;
-    const totalDist = Math.hypot(deltaE, deltaN);
+    const dE = stakeTarget.e - east;
+    const dN = stakeTarget.n - north;
+    const total = Math.hypot(dE, dN);
 
-    const nsDir = deltaN > 0 ? "North" : "South";
-    const ewDir = deltaE > 0 ? "East" : "West";
-    const nsDist = Math.abs(deltaN).toFixed(2);
-    const ewDist = Math.abs(deltaE).toFixed(2);
+    const nsDir = dN > 0 ? "North" : "South";
+    const ewDir = dE > 0 ? "East" : "West";
+    const nsDist = Math.abs(dN).toFixed(2);
+    const ewDist = Math.abs(dE).toFixed(2);
 
-    const stakeBox = document.getElementById('stake-result');
-    stakeBox.innerHTML = `
-      <strong>Stake Result:</strong><br>
-      📏 Total Distance: <b>${totalDist.toFixed(2)} m</b><br>
-      🧭 ${nsDist} m to the <b>${nsDir}</b><br>
-      🧭 ${ewDist} m to the <b>${ewDir}</b>
+    html += `
+      <hr>
+      <p><strong>🎯 Target:</strong> ${stakeTarget.name}</p>
+      <p><strong>📏 Total Distance:</strong> ${total.toFixed(2)} m</p>
+      <p>🧭 ${nsDist} m to the <b>${nsDir}</b></p>
+      <p>🧭 ${ewDist} m to the <b>${ewDir}</b></p>
     `;
 
-    // ✅ Turn green when within 2 m
-    if (totalDist <= 2) {
-      stakeBox.style.backgroundColor = '#a5d6a7';
-      stakeBox.style.border = '3px solid #2e7d32';
-      stakeBox.style.color = '#0b3d0b';
-    } else {
-      stakeBox.style.backgroundColor = '#f3f4f6';
-      stakeBox.style.border = 'none';
-      stakeBox.style.color = '#000';
+    if (total <= 2) {
+      box.style.backgroundColor = "#a5d6a7";
+      box.style.border = "3px solid #2e7d32";
+      box.style.color = "#0b3d0b";
     }
   }
 
-  // Keep your accuracy-based color logic for UI feedback
-  if (c.accuracy < 11) {
-    document.body.style.backgroundColor = '#a5d6a7';
-  } else if (c.accuracy < 31) {
-    document.body.style.backgroundColor = '#fff9c4';
-  } else {
-    document.body.style.backgroundColor = '#FFB6C1';
-  }
-
+  box.innerHTML = html;
   document.getElementById('status').textContent = 'GPS Tracking (Arc1960 36N)';
 }
 </script>
+
 
 
 <script>
