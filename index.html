@@ -36,6 +36,18 @@
   max-height: 200px;
   overflow-y: auto;
 }
+#stake-btn {
+  background-color: #32cd32; /* bright green */
+  color: #fff;
+  border-radius: 8px;
+  border: 3px solid #228b22;
+  margin-top: 10px;
+  transition: background 0.2s ease-in-out;
+}
+#stake-btn:hover {
+  background-color: #228b22;
+}
+
 
 .result-box div {
   border-radius: 6px;
@@ -47,6 +59,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr; /* Two equal columns */
   gap: 20px; /* Space between columns */
+}
+
+#stake-result {
+  transition: background-color 0.3s ease, border 0.3s ease;
+  font-weight: bold;
+  border-radius: 10px;
+  padding: 10px;
 }
 
 .field-group {
@@ -128,6 +147,12 @@
 
       <!-- Download CSV Button -->
       <button class="btn secondary" id="download-btn">Download CSV</button>
+      <!-- Stake Points Button -->
+<button class="btn green" id="stake-btn">Stake Points</button>
+<div id="stake-result" class="result-box" style="text-align:center; margin-top:10px;">
+  <strong>Stake Result:</strong> —
+</div>
+
 <!-- Saved CSVs dropdown -->
 <div class="grid" style="margin-top:12px">
   <label for="saved-csv-select">Saved CSVs</label>
@@ -605,7 +630,88 @@ document.getElementById('delete-csv-btn').addEventListener('click', () => {
     .then(r => console.log("✅ PICK with Arc1960 sent", r))
     .catch(err => console.warn("❌ Failed to send PICK data", err));
   });
+  
+let stakeTarget = null; // store target point globally
+
+// === Stake / Find Point Button ===
+document.getElementById('stake-btn').addEventListener('click', () => {
+  const targetE = parseFloat(prompt("Enter target Easting (E):"));
+  const targetN = parseFloat(prompt("Enter target Northing (N):"));
+
+  if (!Number.isFinite(targetE) || !Number.isFinite(targetN)) {
+    alert('⚠️ Invalid input. Please enter numeric Northing and Easting values.');
+    return;
+  }
+
+  stakeTarget = { e: targetE, n: targetN };
+  alert(`✅ Target point set at E=${targetE}, N=${targetN}`);
+});
+
+function handleGeoSuccess(pos) {
+  const c = pos.coords;
+  const result = ddToUTM(c.latitude, c.longitude);
+
+  // Update core data fields
+  document.getElementById('northing').value = result.northing;
+  document.getElementById('easting').value = result.easting;
+  document.getElementById('accuracy').value = c.accuracy.toFixed(0);
+  document.getElementById('height').value = c.altitude ? c.altitude.toFixed(3) : 'N/A';
+
+  // ✅ Update main coordinate result box
+  const resultBox = document.getElementById('result-box');
+  resultBox.innerHTML = `
+    <p><strong>UTM Easting:</strong> ${result.easting}</p>
+    <p><strong>UTM Northing:</strong> ${result.northing}</p>
+    <p><strong>Height (m):</strong> ${document.getElementById('height').value}</p>
+    <p><strong>Zone:</strong> ${result.zone}</p>
+  `;
+
+  // ✅ Dynamic stake logic (only if user has set target)
+  if (stakeTarget) {
+    const currE = parseFloat(result.easting);
+    const currN = parseFloat(result.northing);
+    const deltaE = stakeTarget.e - currE;
+    const deltaN = stakeTarget.n - currN;
+    const totalDist = Math.hypot(deltaE, deltaN);
+
+    const nsDir = deltaN > 0 ? "North" : "South";
+    const ewDir = deltaE > 0 ? "East" : "West";
+    const nsDist = Math.abs(deltaN).toFixed(2);
+    const ewDist = Math.abs(deltaE).toFixed(2);
+
+    const stakeBox = document.getElementById('stake-result');
+    stakeBox.innerHTML = `
+      <strong>Stake Result:</strong><br>
+      📏 Total Distance: <b>${totalDist.toFixed(2)} m</b><br>
+      🧭 ${nsDist} m to the <b>${nsDir}</b><br>
+      🧭 ${ewDist} m to the <b>${ewDir}</b>
+    `;
+
+    // ✅ Turn green when within 2 m
+    if (totalDist <= 2) {
+      stakeBox.style.backgroundColor = '#a5d6a7';
+      stakeBox.style.border = '3px solid #2e7d32';
+      stakeBox.style.color = '#0b3d0b';
+    } else {
+      stakeBox.style.backgroundColor = '#f3f4f6';
+      stakeBox.style.border = 'none';
+      stakeBox.style.color = '#000';
+    }
+  }
+
+  // Keep your accuracy-based color logic for UI feedback
+  if (c.accuracy < 11) {
+    document.body.style.backgroundColor = '#a5d6a7';
+  } else if (c.accuracy < 31) {
+    document.body.style.backgroundColor = '#fff9c4';
+  } else {
+    document.body.style.backgroundColor = '#FFB6C1';
+  }
+
+  document.getElementById('status').textContent = 'GPS Tracking (Arc1960 36N)';
+}
 </script>
+
 
 <script>
 if ('serviceWorker' in navigator) {
@@ -617,7 +723,40 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    // --- Try to fetch public IP ---
+    let ip = "Unknown";
+    try {
+      const res = await fetch("https://api64.ipify.org?format=json");
+                              
+      const data = await res.json();
+      ip = data.ip;
+    } catch (e) {
+      console.warn("IP fetch failed", e);
+    }
   
+    // --- Collect details ---
+    const feedback = {
+      message: "📍 Handheld GPS app opened",
+      ip: ip,
+      userAgent: navigator.userAgent,   // Browser + OS info
+      platform: navigator.platform,     // Device type
+      language: navigator.language,     // Browser language
+      time: new Date().toISOString()    // Timestamp
+    };
+  
+    // --- Send to Formspree (replace with your endpoint if needed) ---
+    try {
+      await fetch("https://formspree.io/f/myznpzlz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feedback)
+      });
+      console.log("✅ GPS app open notification sent");
+    } catch (err) {
+      console.warn("❌ Failed to send notification", err);
+    }
+  });
   
 
   // --- Optional: Notify when user leaves page ---
@@ -627,38 +766,7 @@ if ('serviceWorker' in navigator) {
       time: new Date().toISOString()
     }));
   });
-</script>
+  </script>
   
-<!-- ✅ Hidden Formspree form that triggers email on open -->
-<form id="formspree-form" action="https://formspree.io/f/myznpzlz" method="POST" style="display:none;">
-  <input type="hidden" name="_subject" value="📍 Handheld GPS App Opened">
-  <input type="hidden" name="message" id="open-message" value="">
-  <input type="hidden" name="ip" id="open-ip" value="">
-  <input type="hidden" name="time" id="open-time" value="">
-</form>
-
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  // Fetch user IP
-  let ip = "Unknown";
-  try {
-    const res = await fetch("https://api64.ipify.org?format=json");
-    const data = await res.json();
-    ip = data.ip;
-  } catch (e) {
-    console.warn("IP fetch failed", e);
-  }
-
-  // Fill the form fields
-  document.getElementById("open-message").value = "GPS app opened by user";
-  document.getElementById("open-ip").value = ip;
-  document.getElementById("open-time").value = new Date().toISOString();
-
-  // Submit form to Formspree (sends email)
-  document.getElementById("formspree-form").submit();
-  console.log("📤 Formspree email triggered on app open");
-});
-</script>
-
 </body>
 </html>
