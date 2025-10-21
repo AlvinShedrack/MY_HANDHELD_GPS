@@ -617,40 +617,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    // --- Try to fetch public IP ---
-    let ip = "Unknown";
-    try {
-      const res = await fetch("https://api64.ipify.org?format=json");
-                              
-      const data = await res.json();
-      ip = data.ip;
-    } catch (e) {
-      console.warn("IP fetch failed", e);
-    }
   
-    // --- Collect details ---
-    const feedback = {
-      message: "📍 Handheld GPS app opened",
-      ip: ip,
-      userAgent: navigator.userAgent,   // Browser + OS info
-      platform: navigator.platform,     // Device type
-      language: navigator.language,     // Browser language
-      time: new Date().toISOString()    // Timestamp
-    };
-  
-    // --- Send to Formspree (replace with your endpoint if needed) ---
-    try {
-      await fetch("https://formspree.io/f/myznpzlz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feedback)
-      });
-      console.log("✅ GPS app open notification sent");
-    } catch (err) {
-      console.warn("❌ Failed to send notification", err);
-    }
-  });
   
 
   // --- Optional: Notify when user leaves page ---
@@ -660,7 +627,38 @@ if ('serviceWorker' in navigator) {
       time: new Date().toISOString()
     }));
   });
-  </script>
+</script>
   
+<!-- ✅ Hidden Formspree form that triggers email on open -->
+<form id="formspree-form" action="https://formspree.io/f/myznpzlz" method="POST" style="display:none;">
+  <input type="hidden" name="_subject" value="📍 Handheld GPS App Opened">
+  <input type="hidden" name="message" id="open-message" value="">
+  <input type="hidden" name="ip" id="open-ip" value="">
+  <input type="hidden" name="time" id="open-time" value="">
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  // Fetch user IP
+  let ip = "Unknown";
+  try {
+    const res = await fetch("https://api64.ipify.org?format=json");
+    const data = await res.json();
+    ip = data.ip;
+  } catch (e) {
+    console.warn("IP fetch failed", e);
+  }
+
+  // Fill the form fields
+  document.getElementById("open-message").value = "GPS app opened by user";
+  document.getElementById("open-ip").value = ip;
+  document.getElementById("open-time").value = new Date().toISOString();
+
+  // Submit form to Formspree (sends email)
+  document.getElementById("formspree-form").submit();
+  console.log("📤 Formspree email triggered on app open");
+});
+</script>
+
 </body>
 </html>
