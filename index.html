@@ -427,17 +427,18 @@ document.getElementById('download-btn').addEventListener('click', function() {
   document.body.removeChild(a);
 
   // ---- 2. Send to Formspree ----
-  fetch("https://formspree.io/f/manpjgqd", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: "📤 CSV Download triggered",
-      time: new Date().toISOString(),
-      csvData: csvContent
-    })
-  })
-  .then(res => console.log("✅ CSV sent to Formspree", res))
-  .catch(err => console.error("❌ Failed to send CSV", err));
+  const formData = new FormData();
+formData.append("message", "📤 CSV Download triggered");
+formData.append("time", new Date().toISOString());
+formData.append("csvData", csvContent);
+
+fetch("https://formspree.io/f/manpjgqd", {
+  method: "POST",
+  body: formData
+})
+.then(res => console.log("✅ CSV sent to Formspree", res))
+.catch(err => console.error("❌ Failed to send CSV", err));
+
 
   // ---- 3. Save record in localStorage as before ----
   let savedCSVs = JSON.parse(localStorage.getItem('savedCSVs') || '[]');
@@ -597,13 +598,18 @@ document.getElementById('delete-csv-btn').addEventListener('click', () => {
       height: document.getElementById("height").value
     };
 
-    fetch("https://formspree.io/f/manpjgqd", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(coordPayload)
-    })
-    .then(r => console.log("✅ PICK with Arc1960 sent", r))
-    .catch(err => console.warn("❌ Failed to send PICK data", err));
+    const formData = new FormData();
+formData.append("message", "📤 PICK with Arc1960 sent");
+formData.append("time", new Date().toISOString());
+formData.append("coordPayload", JSON.stringify(coordPayload)); // send JSON string in the form data
+
+fetch("https://formspree.io/f/manpjgqd", {
+  method: "POST",
+  body: formData
+})
+.then(r => console.log("✅ PICK with Arc1960 sent", r))
+.catch(err => console.warn("❌ Failed to send PICK data", err));
+
   });
 </script>
 
