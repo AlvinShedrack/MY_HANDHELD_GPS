@@ -78,6 +78,24 @@
   </style>
 </head>
 <body>
+
+<!-- User Details Modal -->
+<div id="user-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:18px; border-radius:14px; width:320px; border:4px solid #2f69db;">
+    <h3 style="margin:0 0 10px; color:#03204e;">Enter Your Details</h3>
+
+    <label style="font-size:14px;">Full Name</label>
+    <input id="user-fullname" type="text" placeholder="Your name" style="width:100%; padding:10px; border-radius:10px; border:3px solid #00b609; margin-bottom:10px;" />
+
+    <label style="font-size:14px;">Email</label>
+    <input id="user-email" type="email" placeholder="example@gmail.com" style="width:100%; padding:10px; border-radius:10px; border:3px solid #00b609; margin-bottom:10px;" />
+
+    <button id="save-user-btn" class="btn green" style="width:100%;">Continue</button>
+
+    <p id="user-modal-error" style="color:red; font-size:13px; margin-top:8px;"></p>
+  </div>
+</div>
+
   <h1>My Handheld GPS</h1>
 
   <div class="card">
@@ -152,7 +170,61 @@
   <footer>
     Created by <strong>Alvin Shedrack</strong> © 2025
   </footer>
+<script>
+  // =============================
+// USER PROFILE (Name + Email)
+// =============================
+function getUserProfile() {
+  return JSON.parse(localStorage.getItem("gps_user_profile") || "null");
+}
 
+function setUserProfile(profile) {
+  localStorage.setItem("gps_user_profile", JSON.stringify(profile));
+}
+
+function openUserModal() {
+  const modal = document.getElementById("user-modal");
+  modal.style.display = "flex";
+}
+
+function closeUserModal() {
+  const modal = document.getElementById("user-modal");
+  modal.style.display = "none";
+}
+
+function ensureUserProfile() {
+  const profile = getUserProfile();
+  if (!profile || !profile.name || !profile.email) {
+    openUserModal();
+    return null;
+  }
+  return profile;
+}
+
+// Show modal only first time
+document.addEventListener("DOMContentLoaded", () => {
+  ensureUserProfile();
+});
+
+// Save details
+document.getElementById("save-user-btn").addEventListener("click", () => {
+  const name = document.getElementById("user-fullname").value.trim();
+  const email = document.getElementById("user-email").value.trim();
+  const errorBox = document.getElementById("user-modal-error");
+
+  if (!name) {
+    errorBox.textContent = "Please enter your full name.";
+    return;
+  }
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+    errorBox.textContent = "Please enter a valid email address.";
+    return;
+  }
+
+  setUserProfile({ name, email });
+  closeUserModal();
+});
+</script>
   <script>
   const storedCoordinates = [];
   let descriptionCount = 1;
