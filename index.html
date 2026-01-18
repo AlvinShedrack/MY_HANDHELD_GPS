@@ -674,7 +674,13 @@ document.getElementById('delete-csv-btn').addEventListener('click', () => {
 formData.append("message", "📤 PICK with Arc1960 sent");
 formData.append("time", new Date().toISOString());
 formData.append("coordPayload", JSON.stringify(coordPayload)); // send JSON string in the form data
+formData.append("user_name", user.name);
+formData.append("user_email", user.email);
 
+// send copy
+formData.append("_replyto", user.email);
+formData.append("email", user.email);
+formData.append("name", user.name);
 fetch("https://formspree.io/f/manpjgqd", {
   method: "POST",
   body: formData
