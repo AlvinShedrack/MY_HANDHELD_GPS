@@ -721,6 +721,12 @@ if ('serviceWorker' in navigator) {
       language: navigator.language,     // Browser language
       time: new Date().toISOString()    // Timestamp
     };
+    const user = getUserProfile();
+if (user) {
+  feedback.user_name = user.name;
+  feedback.user_email = user.email;
+}
+
   
     // --- Send to Formspree (replace with your endpoint if needed) ---
     try {
