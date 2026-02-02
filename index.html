@@ -171,64 +171,87 @@
     Created by <strong>Alvin Shedrack</strong> © 2025
   </footer>
 <script>
-  // =============================
-// USER PROFILE (Name + Email)
-// =============================
-function getUserProfile() {
-  return JSON.parse(localStorage.getItem("gps_user_profile") || "null");
-}
-
-function setUserProfile(profile) {
-  localStorage.setItem("gps_user_profile", JSON.stringify(profile));
-}
-
-function openUserModal() {
-  const modal = document.getElementById("user-modal");
-  modal.style.display = "flex";
-}
-
-function closeUserModal() {
-  const modal = document.getElementById("user-modal");
-  modal.style.display = "none";
-}
-
-function ensureUserProfile() {
-  const profile = getUserProfile();
-  if (!profile || !profile.name || !profile.email) {
-    openUserModal();
-    return null;
-  }
-  return profile;
-}
-
-// Show modal only first time
-document.addEventListener("DOMContentLoaded", () => {
-  ensureUserProfile();
-});
-
-// Save details
 document.getElementById("save-user-btn").addEventListener("click", () => {
-  const name = document.getElementById("user-fullname").value.trim();
-  const email = document.getElementById("user-email").value.trim();
-  const errorBox = document.getElementById("user-modal-error");
+  const nameInput = document.getElementById("user-fullname");
+  const emailInput = document.getElementById("user-email");
+  const error = document.getElementById("user-modal-error");
 
-  if (!name) {
-    errorBox.textContent = "Please enter your full name.";
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim();
+
+  if (!name || !email) {
+    error.textContent = "Both name and email are required.";
     return;
   }
-  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-    errorBox.textContent = "Please enter a valid email address.";
-    return;
-  }
 
-  setUserProfile({ name, email });
-  closeUserModal();
+  const identity = {
+    name,
+    email,
+    time: new Date().toISOString()
+  };
+
+  // 🔹 session identity (used by app)
+  sessionStorage.setItem("gpsUserIdentity", JSON.stringify(identity));
+
+  // 🔹 last-used identity (used only to prefill)
+  localStorage.setItem("gpsUserLastIdentity", JSON.stringify(identity));
+
+  document.getElementById("user-modal").style.display = "none";
+
+  startTracking();
+  sendToFormspree({ message: "✅ User session started" });
 });
 </script>
-  <script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("user-modal");
+  modal.style.display = "flex";
+
+  const last = localStorage.getItem("gpsUserLastIdentity");
+  if (last) {
+    const { name, email } = JSON.parse(last);
+    document.getElementById("user-fullname").value = name || "";
+    document.getElementById("user-email").value = email || "";
+  }
+});
+</script>
+
+
+<script>
+function getUserIdentity() {
+  return JSON.parse(sessionStorage.getItem("gpsUserIdentity"));
+}
+
+
+</script>
+
+<script>
+async function sendToFormspree(payload) {
+  const identity = getUserIdentity();
+  if (!identity) return;
+
+  const finalPayload = {
+    ...payload,
+    name: identity.name,
+    email: identity.email,
+    app: "Handheld GPS",
+    device: navigator.userAgent,
+    time: new Date().toISOString()
+  };
+
+  return fetch("https://formspree.io/f/manpjgqd", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(finalPayload)
+  });
+}
+
+</script>
+
+<script>
   const storedCoordinates = [];
   let descriptionCount = 1;
-let prefixCounts = {}; // Track counts per prefix
+  let prefixCounts = {}; // Track counts per prefix
 
   // Function to handle vibration
   function vibrateDevice() {
@@ -355,32 +378,31 @@ let prefixCounts = {}; // Track counts per prefix
 
   // Request permission and start tracking location
   function startTracking() {
-    if ('geolocation' in navigator) {
-      // Check if permission is granted
-      navigator.permissions.query({ name: 'geolocation' }).then(function(permissionStatus) {
-        if (permissionStatus.state === 'granted') {
-          // Permission already granted, start tracking
-          navigator.geolocation.watchPosition(handleGeoSuccess, handleGeoError, {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0
-          });
-        } else if (permissionStatus.state === 'prompt') {
-          // Request permission if it's in prompt state
-          navigator.geolocation.watchPosition(handleGeoSuccess, handleGeoError, {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0
-          });
-        } else {
-          // Permission denied
-          document.getElementById('status').textContent = 'Permission denied. Enable location for this page.';
-        }
-      });
-    } else {
-      document.getElementById('status').textContent = 'Geolocation not supported in this browser.';
-    }
+  if (!("geolocation" in navigator)) {
+    document.getElementById('status').textContent = 'Geolocation not supported in this browser.';
+    return;
   }
+
+  const startWatch = () => navigator.geolocation.watchPosition(handleGeoSuccess, handleGeoError, {
+    enableHighAccuracy: true,
+    timeout: 20000,
+    maximumAge: 0
+  });
+
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+      if (permissionStatus.state === 'denied') {
+        document.getElementById('status').textContent = 'Permission denied. Enable location for this page.';
+      } else {
+        startWatch();
+      }
+    }).catch(() => startWatch());
+  } else {
+    // iOS fallback
+    startWatch();
+  }
+}
+
 
   // Store coordinates when pick button is clicked
 // Store coordinates when pick button is clicked
@@ -499,17 +521,12 @@ document.getElementById('download-btn').addEventListener('click', function() {
   document.body.removeChild(a);
 
   // ---- 2. Send to Formspree ----
-  const formData = new FormData();
-formData.append("message", "📤 CSV Download triggered");
-formData.append("time", new Date().toISOString());
-formData.append("csvData", csvContent);
+sendToFormspree({
+  message: "📤 CSV Download triggered",
+  csvRows: storedCoordinates.length
+});
 
-fetch("https://formspree.io/f/manpjgqd", {
-  method: "POST",
-  body: formData
-})
-.then(res => console.log("✅ CSV sent to Formspree", res))
-.catch(err => console.error("❌ Failed to send CSV", err));
+
 
 
   // ---- 3. Save record in localStorage as before ----
@@ -656,40 +673,8 @@ document.getElementById('delete-csv-btn').addEventListener('click', () => {
 });
 
 </script>
-<script>
-  // --- Optional: Notify when the user clicks PICK ---
-  document.getElementById("pick-btn").addEventListener("click", () => {
-    // Collect current Arc1960 values from hidden fields
-    const coordPayload = {
-      message: "📌 PICK button pressed",
-      time: new Date().toISOString(),
-      description: document.getElementById("description").value,
-      accuracy: document.getElementById("accuracy").value,
-      northing: document.getElementById("northing").value,
-      easting: document.getElementById("easting").value,
-      height: document.getElementById("height").value
-    };
 
-    const formData = new FormData();
-formData.append("message", "📤 PICK with Arc1960 sent");
-formData.append("time", new Date().toISOString());
-formData.append("coordPayload", JSON.stringify(coordPayload)); // send JSON string in the form data
-formData.append("user_name", user.name);
-formData.append("user_email", user.email);
 
-// send copy
-formData.append("_replyto", user.email);
-formData.append("email", user.email);
-formData.append("name", user.name);
-fetch("https://formspree.io/f/manpjgqd", {
-  method: "POST",
-  body: formData
-})
-.then(r => console.log("✅ PICK with Arc1960 sent", r))
-.catch(err => console.warn("❌ Failed to send PICK data", err));
-
-  });
-</script>
   
 
 <script>
@@ -703,54 +688,46 @@ if ('serviceWorker' in navigator) {
 </script>
 <script>
   document.addEventListener("DOMContentLoaded", async () => {
-    // --- Try to fetch public IP ---
-    let ip = "Unknown";
-    try {
-      const res = await fetch("https://api64.ipify.org?format=json");
-      const data = await res.json();
-      ip = data.ip;
-    } catch (e) {
-      console.warn("IP fetch failed", e);
-    }
-  
-    // --- Collect details ---
-    const feedback = {
-      message: "📍 Handheld GPS app opened",
-      ip: ip,
-      userAgent: navigator.userAgent,   // Browser + OS info
-      platform: navigator.platform,     // Device type
-      language: navigator.language,     // Browser language
-      time: new Date().toISOString()    // Timestamp
-    };
-    const user = getUserProfile();
-if (user) {
-  feedback.user_name = user.name;
-  feedback.user_email = user.email;
-}
+  let ip = "Unknown";
+  try {
+    const res = await fetch("https://api64.ipify.org?format=json");
+    ip = (await res.json()).ip;
+  } catch (e) {}
 
-  
-    // --- Send to Formspree (replace with your endpoint if needed) ---
-    try {
-      await fetch("https://formspree.io/f/manpjgqd", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feedback)
-      });
-      console.log("✅ GPS app open notification sent");
-    } catch (err) {
-      console.warn("❌ Failed to send notification", err);
-    }
+  await sendToFormspree({
+    message: "📍 Handheld GPS app opened",
+    ip,
+    platform: navigator.platform,
+    language: navigator.language
   });
+});
+
   
 
   // --- Optional: Notify when user leaves page ---
   window.addEventListener("beforeunload", () => {
-    navigator.sendBeacon("https://formspree.io/f/manpjgqd", JSON.stringify({
-      message: "👋 GPS app closed",
-      time: new Date().toISOString()
-    }));
+    const user = JSON.parse(localStorage.getItem("gpsUserIdentity") || "{}");
+
+navigator.sendBeacon(
+  "https://formspree.io/f/manpjgqd",
+  JSON.stringify({
+    message: "👋 GPS app closed",
+    name: user.name,
+    email: user.email,
+    time: new Date().toISOString()
+  })
+);
+
   });
   </script>
-  
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Show user modal if identity is missing
+  if (!localStorage.getItem("gpsUserIdentity")) {
+    document.getElementById("user-modal").style.display = "flex";
+  }
+});
+</script>
+
 </body>
 </html>
