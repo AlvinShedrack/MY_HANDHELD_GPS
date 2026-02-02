@@ -78,6 +78,20 @@
   </style>
 </head>
 <body>
+<!-- Splash / Branding Modal -->
+<div id="splash-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:10000; align-items:center; justify-content:center;">
+  <div style="background:#0b1220; color:#fff; padding:18px; border-radius:18px; width:320px; border:3px solid #2f69db; text-align:center; box-shadow:0 10px 35px rgba(0,0,0,.45);">
+    <div style="font-size:44px; line-height:1; margin-bottom:10px;">🛰️</div>
+    <div style="font-size:18px; font-weight:800; margin-bottom:6px;">My Handheld GPS</div>
+    <div style="font-size:13px; opacity:.9; margin-bottom:14px;">
+      Created by <span style="color:#12cc6f; font-weight:800;">Alvin Shedrack</span>
+    </div>
+    <div style="height:6px; width:100%; background:rgba(255,255,255,.12); border-radius:999px; overflow:hidden;">
+      <div id="splash-bar" style="height:100%; width:0%; background:#12cc6f;"></div>
+    </div>
+    <div style="font-size:12px; opacity:.75; margin-top:10px;">Loading…</div>
+  </div>
+</div>
 
 <!-- User Details Modal -->
 <div id="user-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center;">
@@ -726,6 +740,33 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!localStorage.getItem("gpsUserIdentity")) {
     document.getElementById("user-modal").style.display = "flex";
   }
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const splash = document.getElementById("splash-modal");
+  const bar = document.getElementById("splash-bar");
+  const userModal = document.getElementById("user-modal");
+
+  // Animate bar
+  setTimeout(() => { if (bar) bar.style.width = "100%"; }, 50);
+
+  // Hide splash then show user details modal
+  setTimeout(() => {
+    if (splash) splash.style.display = "none";
+
+    // Always ask every time app opens (but prefill last details)
+    if (userModal) userModal.style.display = "flex";
+
+    const last = localStorage.getItem("gpsUserLastIdentity");
+    if (last) {
+      try {
+        const { name, email } = JSON.parse(last);
+        document.getElementById("user-fullname").value = name || "";
+        document.getElementById("user-email").value = email || "";
+      } catch (e) {}
+    }
+  }, 1200);
 });
 </script>
 
