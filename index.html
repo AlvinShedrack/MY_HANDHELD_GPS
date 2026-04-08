@@ -5,7 +5,7 @@
   <meta name="theme-color" content="#4B0082">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="My handheld GPS by Alvin Shedrack">
-  <link rel="apple-touch-icon" href="ICON.jpg">
+  <link rel="apple-touch-icon" href="ICON.png">
 
   <meta charset="UTF-8" />
   <title>My HandHeld GPS</title>
@@ -215,6 +215,26 @@ document.getElementById("save-user-btn").addEventListener("click", () => {
   startTracking();
   sendToFormspree({ message: "✅ User session started" });
 });
+async function getDeviceModel() {
+  // Try modern API first (works on newer Android Chrome)
+  if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+    try {
+      const ua = await navigator.userAgentData.getHighEntropyValues(["model"]);
+      if (ua.model) return ua.model;
+    } catch(e) {}
+  }
+
+  // Fallback to old method
+  const userAgent = navigator.userAgent;
+
+  const androidMatch = userAgent.match(/Android.*;\s(.*?)\sBuild/);
+  if (androidMatch) return androidMatch[1];
+
+  if (/iPhone/.test(userAgent)) return "iPhone";
+  if (/iPad/.test(userAgent)) return "iPad";
+
+  return "Unknown device";
+}
 </script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -249,7 +269,7 @@ async function sendToFormspree(payload) {
     name: identity.name,
     email: identity.email,
     app: "Handheld GPS",
-    device: navigator.userAgent,
+    device: await getDeviceModel(),
     time: new Date().toISOString()
   };
 
