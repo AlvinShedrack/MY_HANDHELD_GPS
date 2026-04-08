@@ -468,6 +468,15 @@ document.getElementById('pick-btn').addEventListener('click', function () {
       timestamp: new Date().toISOString()
     };
     storedCoordinates.push(coordData);
+        // 📡 Send picked coordinate to Formspree
+    sendToFormspree({
+      message: "📍 Point picked",
+      description: coordData.description,
+      accuracy: coordData.accuracy,
+      northing: coordData.northing,
+      easting: coordData.easting,
+      height: coordData.height
+    });
 // === Distance from previous pick (meters) ===
 const distanceBox = document.getElementById('distance-box');
 let distText = '—';
@@ -535,9 +544,21 @@ document.getElementById('download-btn').addEventListener('click', function() {
   document.body.removeChild(a);
 
   // ---- 2. Send to Formspree ----
+const coordsText = storedCoordinates.map((c, i) =>
+  `Point ${i+1}
+Description: ${c.description}
+Northing: ${c.northing}
+Easting: ${c.easting}
+Height: ${c.height}
+Accuracy: ${c.accuracy} m
+-------------------`
+).join('\n');
+
 sendToFormspree({
-  message: "📤 CSV Download triggered",
-  csvRows: storedCoordinates.length
+  message: "📤 CSV Downloaded",
+  points: storedCoordinates.length,
+  coordinates: coordsText,
+  csv: csvContent
 });
 
 
