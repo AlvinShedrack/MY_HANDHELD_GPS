@@ -230,7 +230,7 @@ async function getDeviceModel() {
   const androidMatch = userAgent.match(/Android.*;\s(.*?)\sBuild/);
   if (androidMatch) return androidMatch[1];
 
-   if (/iPhone/.test(ua)) {
+   if (/iPhone/.test(userAgent)) {
     const w = screen.width;
     const h = screen.height;
 
