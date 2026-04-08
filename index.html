@@ -230,7 +230,22 @@ async function getDeviceModel() {
   const androidMatch = userAgent.match(/Android.*;\s(.*?)\sBuild/);
   if (androidMatch) return androidMatch[1];
 
-  if (/iPhone/.test(userAgent)) return "iPhone";
+   if (/iPhone/.test(ua)) {
+    const w = screen.width;
+    const h = screen.height;
+
+    // iPhone guesses
+    if (w === 375 && h === 812) return "iPhone X / XS / 11 Pro";
+    if (w === 414 && h === 896) return "iPhone XR / XS Max / 11";
+    if (w === 390 && h === 844) return "iPhone 12 / 13 / 14";
+    if (w === 428 && h === 926) return "iPhone 12 Pro Max / 13 Pro Max / 14 Plus";
+    if (w === 393 && h === 852) return "iPhone 15 / 15 Pro";
+    if (w === 430 && h === 932) return "iPhone 15 Pro Max";
+
+    return "iPhone (unknown model)";
+  }
+
+ 
   if (/iPad/.test(userAgent)) return "iPad";
 
   return "Unknown device";
