@@ -18,73 +18,276 @@
     crossorigin=""></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; font-weight: bold; }
-    body { margin: 24px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-    h1 { font-size: 1.25rem; margin: 0 0 12px; }
-    .card { border: 6px solid #2f69db; border-radius: 22px; padding: 16px; width: min(100%, 920px); max-width: 920px; }
-    .dashboard-grid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-top: 10px; }
-    .map-container { width: 100%; height: 280px; border-radius: 18px; border: 3px solid #2f69db; margin-top: 16px; }
-    .result-box table { width: 100%; border-collapse: collapse; }
-    .result-box table td, .result-box table th { padding: 8px; border-bottom: 1px solid #d1d5db; }
-    .grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
-    label { justify-content: center;font-size: 1.2rem; color: #03204e; display: block; margin-bottom: 4px; }
-    input, button, textarea { 
-      width: 40%; /* Reduced the width from 100% to 80% */
-      padding: 10px 20px; 
-      border-radius: 10px; font-size: 1.2rem;
-      border: 6px solid #00b609; justify-content: center;
+    :root {
+      font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      font-weight: bold;
+      color: #16213e;
+      background: #f7f9ff;
     }
-    input:focus, button:focus, textarea:focus { 
-      outline: none; justify-content: center;
-      border-color: #ca6200; 
-      box-shadow: 0 0 0 3px rgba(99,102,241,.15); 
+
+    *, *::before, *::after {
+      box-sizing: border-box;
     }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: linear-gradient(180deg, #eef2ff 0%, #f8fbff 100%);
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 16px;
+      color: #1d2939;
+      text-align: center;
+    }
+
+    .card {
+      border: 1px solid rgba(47, 105, 219, 0.16);
+      border-radius: 24px;
+      padding: 20px;
+      width: min(100%, 980px);
+      max-width: 980px;
+      background: #ffffff;
+      box-shadow: 0 24px 50px rgba(15, 23, 42, 0.08);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 16px;
+    }
+
+    .map-container {
+      width: 100%;
+      min-height: 340px;
+      border-radius: 22px;
+      border: 3px solid #2f69db;
+      margin-top: 16px;
+      overflow: hidden;
+      background: #e2e8f0;
+    }
+
+    .result-box table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .result-box table td,
+    .result-box table th {
+      padding: 10px 8px;
+      border-bottom: 1px solid #d1d5db;
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1fr;
+    }
+
+    label {
+      font-size: 1rem;
+      color: #102a43;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input,
+    button,
+    textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 1rem;
+      border: 2px solid #8b96c6;
+      background: #f8fafc;
+      color: #102a43;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 48px;
+    }
+
+    input:focus,
+    button:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #2f69db;
+      box-shadow: 0 0 0 4px rgba(47, 105, 219, 0.14);
+    }
+
     .result-box {
-  background: #7e99cf;
-  padding: 8px 12px;
-  border-radius: 80px;
-  margin-top: 12px;
-  max-height: 200px;
-  overflow-y: auto;
-}
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 24px;
+      margin-top: 12px;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
+    }
 
-.result-box div {
-  border-radius: 6px;
-  padding: 6px 8px;
-  margin-bottom: 4px;
-  color: #111;
-}
-.grid.two-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Two equal columns */
-  gap: 20px; /* Space between columns */
-}
+    .result-box div {
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      color: #102a43;
+      background: rgba(255, 255, 255, 0.75);
+    }
 
-.field-group {
-  display: flex;
-  flex-direction: column; /* Label on top, input below */
-}
+    .grid.two-columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+    }
 
     footer {
       text-align: center;
-      margin: 20px 0;
+      margin: 24px 0 0;
       font-size: 0.9rem;
-      color: #4B0082;
+      color: #4b0082;
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: #eef4ff;
+      border-radius: 18px;
+      color: #102a43;
+      border: 1px solid #dbeafe;
+    }
+
+    .copyable {
+      cursor: pointer;
+      color: #1d4ed8;
+    }
+
+    .btn {
+      font-weight: 800;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 100%;
+      padding: 14px 16px;
+      cursor: pointer;
+      border: 3px solid #094fb9;
+      background: #111827;
+      color: #12cc6f;
+      border-radius: 16px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+    }
+
+    .btn.green {
+      background-color: #16a34a;
+      color: white;
+      border-color: #15803d;
+    }
+
+    .btn.secondary {
+      background: #f1f5f9;
+      color: #111827;
+      border-color: #cbd5e1;
+    }
+
+    .circular-button {
+      font-weight: 800;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      background-color: #ffffff;
+      color: #111827;
+      font-size: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      margin: 20px auto;
+      border: 3px solid #2f69db;
+    }
+
+    .csv-box {
       margin-top: 20px;
     }
-    .status { text-align: center; margin-top: 12px; padding: 8px 0; }
-    .result-box { background: #f3f4f6; padding: 6px 12px; border-radius: 8px; margin-top: 12px; }
-    .copyable { cursor: pointer; color: blue; }
-    .btn {   font-weight: bold; font-size: 18px; width: 100%;   padding: 8px 12px; cursor: pointer; border: 3px solid #094fb9; background: #07090c; color: #12cc6f; }
-    .btn.green { background-color: #4caf50; color: white; padding: 5px; border-radius: 0%; margin: 2px auto; font-size: 16px; }
-    .btn.secondary { background: #f3f4f6; color: #111827; }
-    .circular-button {  font-weight: bold; border-radius: 50%; width: 120px; height: 120px; background-color: #f3f4f6; color: black; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 20px auto; }
-    .csv-box { margin-top: 20px; }
-    .error { color: red; }
 
-    /* Hide the Northing, Easting, and Height fields */
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .btn-row .btn {
+      width: 100%;
+    }
+
+    .error {
+      color: #b91c1c;
+      font-weight: 700;
+    }
+
     .hidden-fields {
-      display: none; /* Hide these fields from the UI but keep them in the HTML */
+      display: none;
+    }
+
+    @media (max-width: 860px) {
+      body {
+        padding: 12px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .dashboard-grid,
+      .grid.two-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .map-container {
+        min-height: 340px;
+      }
+
+      .circular-button {
+        width: 100%;
+        max-width: 260px;
+      }
+
+      .btn-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      input,
+      button,
+      textarea {
+        font-size: 0.98rem;
+      }
+
+      .btn {
+        font-size: 0.95rem;
+      }
     }
   </style>
 </head>
@@ -178,7 +381,7 @@
     <option value="">— Select a CSV —</option>
   </select>
 
-  <div style="display:flex;gap:8px;margin-top:8px;">
+  <div class="btn-row" style="margin-top:8px;">
     <button class="btn" id="load-csv-btn">Load into app</button>
     <button class="btn secondary" id="open-csv-btn">Open CSV</button>
     <button class="btn secondary" id="delete-csv-btn">Delete</button>
@@ -372,6 +575,9 @@ function initMap() {
   }).addTo(gpsMap);
   gpsMarker = L.marker([0, 0]).addTo(gpsMap);
   trackPolyline = L.polyline([], { color: '#2f69db', weight: 4, opacity: 0.9 }).addTo(gpsMap);
+  gpsMap.whenReady(() => {
+    setTimeout(() => gpsMap.invalidateSize(), 50);
+  });
 }
 
 function updateMapPosition(lat, lon, accuracy) {
