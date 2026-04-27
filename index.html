@@ -83,19 +83,21 @@
       position: relative;
     }
 
-    .map-overlay {
-      position: absolute;
-      top: 10px;
+    .floating-map-accuracy {
+      position: fixed;
+      top: 140px;
       left: 10px;
       z-index: 1000;
       background: rgba(15, 23, 42, 0.88);
       color: #f1f5f9;
-      padding: 8px 12px;
-      border-radius: 14px;
+      padding: 10px 14px;
+      border-radius: 18px;
       border: 1px solid rgba(59, 130, 246, 0.4);
       font-size: 0.95rem;
       backdrop-filter: blur(8px);
       white-space: nowrap;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+      font-weight: 700;
     }
 
     .map-action-button {
@@ -427,6 +429,7 @@
 
   <!-- Floating Pick Button -->
   <div class="circular-button floating-pick-button" id="pick-btn">PICK</div>
+  <div id="map-accuracy-overlay" class="floating-map-accuracy">Accuracy: —</div>
 
   <div class="card">
     <div class="grid two-columns">
@@ -451,7 +454,6 @@
         </div>
       </div>
             <div id="map" class="map-container">
-              <div id="map-accuracy-overlay" class="map-overlay">Accuracy: —</div>
               <button id="map-center-btn" class="map-action-button" type="button" title="Center on current location">📍</button>
             </div>
 <div id="distance-box" class="result-box" style="text-align:center">
@@ -685,12 +687,12 @@ function initMap() {
     center: [0, 0],
     zoom: 2,
     zoomControl: true,
-    layers: [osmLayer]
+    layers: [satelliteLayer]
   });
 
   const baseMaps = {
-    'OpenStreetMap': osmLayer,
-    'Satellite': satelliteLayer
+    'Satellite': satelliteLayer,
+    'OpenStreetMap': osmLayer
   };
   L.control.layers(baseMaps, null, { position: 'topright' }).addTo(gpsMap);
 
@@ -938,6 +940,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapAccuracy = document.getElementById('map-accuracy-overlay');
     if (mapAccuracy) {
       mapAccuracy.textContent = `Accuracy: ${accuracy.toFixed(1)} m`;
+      let badgeColor = 'rgba(59, 130, 246, 0.95)';
+      if (accuracy <= 5) {
+        badgeColor = 'rgba(16, 185, 129, 0.95)';
+      } else if (accuracy <= 10) {
+        badgeColor = 'rgba(34, 197, 94, 0.95)';
+      } else if (accuracy <= 30) {
+        badgeColor = 'rgba(251, 191, 36, 0.95)';
+      } else {
+        badgeColor = 'rgba(239, 68, 68, 0.95)';
+      }
+      mapAccuracy.style.backgroundColor = badgeColor;
+      mapAccuracy.style.borderColor = 'rgba(255, 255, 255, 0.2)';
     }
 
     document.getElementById('result-box').innerHTML = `
