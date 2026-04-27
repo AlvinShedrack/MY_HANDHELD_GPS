@@ -591,6 +591,9 @@ let gpsMarker;
 let trackPolyline;
 let trackRoute = [];
 let accuracyChart;
+let pickedMarkers = [];
+let pickedPolyline;
+let currentLat, currentLon;
 
 function formatDMS(deg, isLatitude = true) {
   const sign = deg < 0 ? -1 : 1;
@@ -699,6 +702,55 @@ function renderPickedPointsTable() {
   });
 }
 
+function renderPickedPointsOnMap() {
+  if (!gpsMap) return;
+
+  // Clear existing picked markers
+  pickedMarkers.forEach(marker => gpsMap.removeLayer(marker));
+  pickedMarkers = [];
+
+  // Clear existing picked polyline
+  if (pickedPolyline) {
+    gpsMap.removeLayer(pickedPolyline);
+    pickedPolyline = null;
+  }
+
+  if (storedCoordinates.length === 0) return;
+
+  // Convert stored coordinates to lat/lon (we need to convert from UTM back to lat/lon)
+  // For simplicity, we'll use the current GPS position as reference, but ideally we'd store lat/lon too
+  // For now, let's assume we need to add lat/lon to storedCoordinates
+
+  // Add markers for picked points
+  storedCoordinates.forEach((coord, index) => {
+    // We need lat/lon coordinates. Let's add them when picking
+    if (coord.lat && coord.lon) {
+      const marker = L.marker([coord.lat, coord.lon], {
+        icon: L.divIcon({
+          className: 'picked-point-marker',
+          html: `<div style="background-color: #ff6b35; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${index + 1}</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        })
+      }).addTo(gpsMap);
+
+      marker.bindPopup(`<strong>${coord.description}</strong><br>Accuracy: ${coord.accuracy}m<br>Distance: ${coord.distance}`);
+      pickedMarkers.push(marker);
+    }
+  });
+
+  // Add connecting line between picked points
+  if (pickedMarkers.length > 1) {
+    const pickedCoords = pickedMarkers.map(marker => marker.getLatLng());
+    pickedPolyline = L.polyline(pickedCoords, {
+      color: '#ff6b35',
+      weight: 3,
+      opacity: 0.8,
+      dashArray: '5, 5'
+    }).addTo(gpsMap);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initMap();
   initAccuracyChart();
@@ -761,6 +813,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleGeoSuccess(pos) {
     const c = pos.coords;
     console.log('Geolocation Success:', c);
+
+    // Store current lat/lon for picked points
+    currentLat = c.latitude;
+    currentLon = c.longitude;
 
     const height = (c.altitude !== null && c.altitude !== undefined) ? c.altitude : null;
     const result = ddToUTM(c.latitude, c.longitude);
@@ -912,6 +968,8 @@ document.getElementById('pick-btn').addEventListener('click', function () {
       northing: document.getElementById('northing').value,
       easting: document.getElementById('easting').value,
       height: document.getElementById('height').value,
+      lat: currentLat,
+      lon: currentLon,
       timestamp: new Date().toISOString(),
       distance: '—'
     };
@@ -955,6 +1013,7 @@ distanceBox.innerHTML = `<strong>Distance from previous:</strong> ${distText}`;
     const descriptionsBox = document.getElementById('descriptions-box');
     descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
     renderPickedPointsTable();
+    renderPickedPointsOnMap();
 
     vibrateDevice();
 
@@ -978,9 +1037,9 @@ document.getElementById('download-btn').addEventListener('click', function() {
   }
 
   // Build CSV content
-  let csvContent = 'Description,Accuracy,Northing,Easting,Height,Timestamp\n';
+  let csvContent = 'Description,Accuracy,Northing,Easting,Height,Lat,Lon,Timestamp\n';
   storedCoordinates.forEach(function(coord) {
-    csvContent += `${coord.description},${coord.accuracy},${coord.northing},${coord.easting},${coord.height},${coord.timestamp}\n`;
+    csvContent += `${coord.description},${coord.accuracy},${coord.northing},${coord.easting},${coord.height},${coord.lat || ''},${coord.lon || ''},${coord.timestamp}\n`;
   });
 
   // ---- 1. Local download ----
@@ -1104,7 +1163,10 @@ document.getElementById('load-csv-btn').addEventListener('click', () => {
       northing: row.Northing,
       easting: row.Easting,
       height: row.Height,
-      timestamp: row.Timestamp
+      lat: row.Lat ? parseFloat(row.Lat) : null,
+      lon: row.Lon ? parseFloat(row.Lon) : null,
+      timestamp: row.Timestamp,
+      distance: '—'
     });
   });
 
@@ -1124,6 +1186,7 @@ document.getElementById('load-csv-btn').addEventListener('click', () => {
   }
 
   renderPickedPointsTable();
+  renderPickedPointsOnMap();
   alert(`Loaded ${storedCoordinates.length} points from ${csv.name}`);
 });
 
