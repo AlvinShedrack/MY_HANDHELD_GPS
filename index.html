@@ -48,7 +48,7 @@
 
     h1 {
       font-size: 1.6rem;
-      margin: 0 0 16px;
+      margin: 0 0 12px;
       color: #f1f5f9;
       text-align: center;
     }
@@ -56,7 +56,7 @@
     .card {
       border: 1px solid rgba(59, 130, 246, 0.3);
       border-radius: 20px;
-      padding: 16px;
+      padding: 12px;
       width: 100%;
       max-width: 100%;
       background: rgba(15, 23, 42, 0.9);
@@ -67,9 +67,9 @@
 
     .dashboard-grid {
       display: grid;
-      gap: 14px;
+      gap: 10px;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      margin-top: 16px;
+      margin-top: 10px;
     }
 
     .map-container {
@@ -77,7 +77,7 @@
       min-height: 320px;
       border-radius: 18px;
       border: 2px solid #3b82f6;
-      margin-top: 14px;
+      margin-top: 8px;
       overflow: hidden;
       background: #1e293b;
       position: relative;
@@ -102,10 +102,10 @@
     }
 
     label {
-      font-size: 1rem;
+      font-size: 0.9rem;
       color: #102a43;
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     input,
@@ -114,7 +114,7 @@
     select {
       width: 85%;
       min-width: 0;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 12px;
       font-size: 0.95rem;
       border: 2px solid #475569;
@@ -137,9 +137,9 @@
 
     .result-box {
       background: rgba(30, 41, 59, 0.8);
-      padding: 14px;
+      padding: 10px;
       border-radius: 18px;
-      margin-top: 10px;
+      margin-top: 8px;
       box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
       color: #f1f5f9;
     }
@@ -155,7 +155,7 @@
     .grid.two-columns {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 20px;
+      gap: 12px;
     }
 
     .field-group {
@@ -165,7 +165,7 @@
 
     footer {
       text-align: center;
-      margin: 20px 0 0;
+      margin: 12px 0 0;
       font-size: 0.85rem;
       color: #cbd5e1;
     }
@@ -221,16 +221,16 @@
     .circular-button {
       font-weight: 800;
       border-radius: 50%;
-      width: 120px;
-      height: 120px;
+      width: 100px;
+      height: 100px;
       background-color: #1e40af;
       color: #f1f5f9;
-      font-size: 22px;
+      font-size: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      margin: 20px auto;
+      margin: 12px auto;
       border: 3px solid #3b82f6;
       box-shadow: 0 15px 25px rgba(59, 130, 246, 0.3);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -248,12 +248,15 @@
     .btn-row {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      gap: 8px;
       align-items: stretch;
     }
 
     .btn-row .btn {
       width: 100%;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      margin: 0;
     }
 
     .error {
@@ -267,7 +270,7 @@
 
     @media (max-width: 860px) {
       body {
-        padding: 10px;
+        padding: 8px;
       }
 
       .card {
@@ -376,12 +379,12 @@
   <div class="card">
     <div class="grid two-columns">
       <div class="field-group">
-        <label for="accuracy" style="font-size: 18px; color: #08e425;font-weight: bold;">Accuracy (m)</label>
+        <label for="accuracy" style="font-size: 16px; color: #08e425;font-weight: bold;">Accuracy (m)</label>
         <input id="accuracy" type="number" step="0.1" placeholder="Accuracy" readonly style="font-size: 16px; font-weight: bold;" />
       </div>
     
       <div class="field-group">
-        <label for="description"style="font-size: 18px; color: #08e425;font-weight: bold;">Description</label>
+        <label for="description"style="font-size: 16px; color: #08e425;font-weight: bold;">Description</label>
         <textarea id="description" placeholder="Name" rows="1" maxlength="10"></textarea>
       </div>
     </div>
@@ -393,7 +396,7 @@
             <div class="dashboard-grid">
         <div class="result-box">
           <strong>Accuracy chart</strong>
-          <div style="position:relative;height:220px;">
+          <div style="position:relative;height:180px;">
             <canvas id="accuracy-chart"></canvas>
           </div>
         </div>
@@ -422,7 +425,7 @@
       <div class="status">
         <span id="status" class="pill">Waiting for GPS fix...</span>
       </div>
-            <div id="points-table" class="result-box" style="margin-top:12px;">
+            <div id="points-table" class="result-box" style="margin-top:8px;">
         <strong>Picked points</strong>
         <table id="picked-points-table">
           <thead>
@@ -443,21 +446,21 @@
       </div>
 
       <!-- Download CSV Button -->
-      <button class="btn secondary" id="download-btn">Download CSV</button>
+      <button class="btn secondary" id="download-btn" style="margin-top:8px;">Download CSV</button>
 <!-- Saved CSVs dropdown -->
-<div class="grid" style="margin-top:12px">
-  <label for="saved-csv-select"style="font-size: 18px; color: #08e425;font-weight: bold;">Saved CSVs</label>
+<div class="grid" style="margin-top:8px">
+  <label for="saved-csv-select"style="font-size: 16px; color: #08e425;font-weight: bold;">Saved CSVs</label>
   <select id="saved-csv-select" style="width:100%">
     <option value="">— Select a CSV —</option>
   </select>
 
-  <div class="btn-row" style="margin-top:8px;">
+  <div class="btn-row" style="margin-top:4px;">
     <button class="btn" id="load-csv-btn">Load into app</button>
     <button class="btn secondary" id="open-csv-btn">Open CSV</button>
     <button class="btn secondary" id="delete-csv-btn">Delete</button>
   </div>
 
-  <div id="csv-preview" class="result-box" style="margin-top:8px;">
+  <div id="csv-preview" class="result-box" style="margin-top:4px;">
     <strong>Loaded CSV Preview:</strong>
   </div>
 </div>
@@ -593,6 +596,7 @@ let trackRoute = [];
 let accuracyChart;
 let pickedMarkers = [];
 let pickedPolyline;
+let pickedDistanceMarkers = [];
 let currentLat, currentLon;
 
 function formatDMS(deg, isLatitude = true) {
@@ -621,7 +625,7 @@ function initMap() {
     maxZoom: 19
   }).addTo(gpsMap);
   gpsMarker = L.marker([0, 0]).addTo(gpsMap);
-  trackPolyline = L.polyline([], { color: '#2f69db', weight: 4, opacity: 0.9 }).addTo(gpsMap);
+  // Removed blue tracking line: trackPolyline = L.polyline([], { color: '#2f69db', weight: 4, opacity: 0.9 }).addTo(gpsMap);
   gpsMap.whenReady(() => {
     setTimeout(() => gpsMap.invalidateSize(), 100);
   });
@@ -637,8 +641,7 @@ function updateMapPosition(lat, lon, accuracy) {
   if (!gpsMap || !gpsMarker) return;
   const coords = [lat, lon];
   gpsMarker.setLatLng(coords);
-  trackRoute.push(coords);
-  trackPolyline.setLatLngs(trackRoute);
+  // Removed blue tracking line updates: trackRoute.push(coords); trackPolyline.setLatLngs(trackRoute);
   gpsMap.setView(coords, Math.max(13, gpsMap.getZoom()));
 }
 
@@ -709,6 +712,10 @@ function renderPickedPointsOnMap() {
   pickedMarkers.forEach(marker => gpsMap.removeLayer(marker));
   pickedMarkers = [];
 
+  // Clear existing picked distance markers
+  pickedDistanceMarkers.forEach(marker => gpsMap.removeLayer(marker));
+  pickedDistanceMarkers = [];
+
   // Clear existing picked polyline
   if (pickedPolyline) {
     gpsMap.removeLayer(pickedPolyline);
@@ -717,13 +724,8 @@ function renderPickedPointsOnMap() {
 
   if (storedCoordinates.length === 0) return;
 
-  // Convert stored coordinates to lat/lon (we need to convert from UTM back to lat/lon)
-  // For simplicity, we'll use the current GPS position as reference, but ideally we'd store lat/lon too
-  // For now, let's assume we need to add lat/lon to storedCoordinates
-
   // Add markers for picked points
   storedCoordinates.forEach((coord, index) => {
-    // We need lat/lon coordinates. Let's add them when picking
     if (coord.lat && coord.lon) {
       const marker = L.marker([coord.lat, coord.lon], {
         icon: L.divIcon({
@@ -748,6 +750,32 @@ function renderPickedPointsOnMap() {
       opacity: 0.8,
       dashArray: '5, 5'
     }).addTo(gpsMap);
+
+    // Add distance markers along the connecting lines
+    for (let i = 0; i < pickedCoords.length - 1; i++) {
+      const start = pickedCoords[i];
+      const end = pickedCoords[i + 1];
+      
+      // Calculate midpoint
+      const midLat = (start.lat + end.lat) / 2;
+      const midLng = (start.lng + end.lng) / 2;
+      
+      // Calculate distance between points (in meters)
+      const distance = gpsMap.distance(start, end);
+      const distanceText = distance >= 1000 ? `${(distance / 1000).toFixed(2)}km` : `${distance.toFixed(0)}m`;
+      
+      // Create distance marker
+      const distanceMarker = L.marker([midLat, midLng], {
+        icon: L.divIcon({
+          className: 'distance-marker',
+          html: `<div style="background-color: rgba(255, 107, 53, 0.9); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid white; white-space: nowrap;">${distanceText}</div>`,
+          iconSize: [60, 20],
+          iconAnchor: [30, 10]
+        })
+      }).addTo(gpsMap);
+      
+      pickedDistanceMarkers.push(distanceMarker);
+    }
   }
 }
 
