@@ -10,11 +10,22 @@
   <meta charset="UTF-8" />
   <title>My HandHeld GPS</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-oTkkbGJ7QHv6iPpY0ieG4dx97lRmFx6FfP0xXFp8aWQ="
+    crossorigin=""/>
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o9N1j6zsH0eLiqyA9ogO5u8QZMBf3ove5YvPx7Fwtb8="
+    crossorigin=""></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; font-weight: bold; }
     body { margin: 24px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
     h1 { font-size: 1.25rem; margin: 0 0 12px; }
-    .card { border: 6px solid #2f69db; border-radius: 22px; padding: 16px; width: 320px; }
+    .card { border: 6px solid #2f69db; border-radius: 22px; padding: 16px; width: min(100%, 920px); max-width: 920px; }
+    .dashboard-grid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-top: 10px; }
+    .map-container { width: 100%; height: 280px; border-radius: 18px; border: 3px solid #2f69db; margin-top: 16px; }
+    .result-box table { width: 100%; border-collapse: collapse; }
+    .result-box table td, .result-box table th { padding: 8px; border-bottom: 1px solid #d1d5db; }
     .grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
     label { justify-content: center;font-size: 1.2rem; color: #03204e; display: block; margin-bottom: 4px; }
     input, button, textarea { 
@@ -178,6 +189,36 @@
   </div>
 </div>
 
+      <div class="dashboard-grid">
+        <div class="result-box">
+          <strong>Live location</strong>
+          <div id="latlon-box" style="margin-top:8px;">Lat/Lon: —</div>
+          <div id="coordinate-formats" style="margin-top:8px;">Converted coordinates: —</div>
+        </div>
+        <div class="result-box">
+          <strong>Accuracy chart</strong>
+          <div style="position:relative;height:220px;">
+            <canvas id="accuracy-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="map" class="map-container"></div>
+
+      <div id="points-table" class="result-box" style="margin-top:12px;">
+        <strong>Picked points</strong>
+        <table id="picked-points-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th style="text-align:right;">Accuracy</th>
+              <th style="text-align:right;">Distance</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
       <div id="error-message" class="error"></div>
     </div>
   </div>
@@ -298,6 +339,123 @@ async function sendToFormspree(payload) {
 </script>
 
 <script>
+let gpsMap;
+let gpsMarker;
+let trackPolyline;
+let trackRoute = [];
+let accuracyChart;
+
+function formatDMS(deg, isLatitude = true) {
+  const sign = deg < 0 ? -1 : 1;
+  const absDeg = Math.abs(deg);
+  const d = Math.floor(absDeg);
+  const m = Math.floor((absDeg - d) * 60);
+  const s = ((absDeg - d) * 60 - m) * 60;
+  const direction = isLatitude ? (sign < 0 ? 'S' : 'N') : (sign < 0 ? 'W' : 'E');
+  return `${d}° ${m}' ${s.toFixed(2)}" ${direction}`;
+}
+
+function convertLatLonFormats(lat, lon) {
+  return {
+    ddText: `${lat.toFixed(6)}°, ${lon.toFixed(6)}°`,
+    latDMS: formatDMS(lat, true),
+    lonDMS: formatDMS(lon, false)
+  };
+}
+
+function initMap() {
+  if (typeof L === 'undefined') return;
+  gpsMap = L.map('map', { center: [0, 0], zoom: 2, zoomControl: true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(gpsMap);
+  gpsMarker = L.marker([0, 0]).addTo(gpsMap);
+  trackPolyline = L.polyline([], { color: '#2f69db', weight: 4, opacity: 0.9 }).addTo(gpsMap);
+}
+
+function updateMapPosition(lat, lon, accuracy) {
+  if (!gpsMap || !gpsMarker) return;
+  const coords = [lat, lon];
+  gpsMarker.setLatLng(coords);
+  trackRoute.push(coords);
+  trackPolyline.setLatLngs(trackRoute);
+  gpsMap.setView(coords, Math.max(13, gpsMap.getZoom()));
+  L.circle(coords, {
+    radius: Math.max(accuracy, 5),
+    color: '#2f69db',
+    fillColor: '#2f69db',
+    fillOpacity: 0.12
+  }).addTo(gpsMap);
+}
+
+function updateLocationPanels(lat, lon, accuracy, zone, displayHeight) {
+  const latlonBox = document.getElementById('latlon-box');
+  if (latlonBox) latlonBox.innerHTML = `<strong>Lat/Lon:</strong> ${lat.toFixed(6)}, ${lon.toFixed(6)}<br><strong>Height:</strong> ${displayHeight}<br><strong>Accuracy:</strong> ${accuracy.toFixed(1)} m<br><strong>Zone:</strong> ${zone}`;
+  const formatsBox = document.getElementById('coordinate-formats');
+  if (formatsBox) {
+    const converted = convertLatLonFormats(lat, lon);
+    formatsBox.innerHTML = `<strong>Decimal:</strong> ${converted.ddText}<br><strong>DMS:</strong> ${converted.latDMS} / ${converted.lonDMS}`;
+  }
+}
+
+function initAccuracyChart() {
+  const ctx = document.getElementById('accuracy-chart');
+  if (!ctx || typeof Chart === 'undefined') return;
+  accuracyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Accuracy (m)',
+        data: [],
+        borderColor: '#2f69db',
+        backgroundColor: 'rgba(47,105,219,0.18)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+function updateAccuracyChart(accuracy) {
+  if (!accuracyChart) return;
+  const label = new Date().toLocaleTimeString();
+  accuracyChart.data.labels.push(label);
+  accuracyChart.data.datasets[0].data.push(accuracy);
+  if (accuracyChart.data.labels.length > 20) {
+    accuracyChart.data.labels.shift();
+    accuracyChart.data.datasets[0].data.shift();
+  }
+  accuracyChart.update();
+}
+
+function renderPickedPointsTable() {
+  const tbody = document.querySelector('#picked-points-table tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  storedCoordinates.forEach(coord => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${coord.description}</td><td style="text-align:right;">${coord.accuracy}</td><td style="text-align:right;">${coord.distance || '—'}</td>`;
+    tbody.appendChild(row);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  initAccuracyChart();
+});
+</script>
+
+<script>
   const storedCoordinates = [];
   let descriptionCount = 1;
   let prefixCounts = {}; // Track counts per prefix
@@ -354,12 +512,12 @@ async function sendToFormspree(payload) {
     const c = pos.coords;
     console.log('Geolocation Success:', c);
 
-    const height = (c.altitude !== null && c.altitude !== undefined) ? c.altitude : 'N/A';
+    const height = (c.altitude !== null && c.altitude !== undefined) ? c.altitude : null;
     const result = ddToUTM(c.latitude, c.longitude);
     const accuracy = c.accuracy;
+    const displayHeight = height !== null ? parseFloat(height).toFixed(3) : 'N/A';
 
-    // Set the height and round to 3 decimal places
-    document.getElementById('height').value = parseFloat(height).toFixed(3); // Rounded to 3 decimal places
+    document.getElementById('height').value = displayHeight;
     document.getElementById('accuracy').value = accuracy.toFixed(0);
     document.getElementById('northing').value = result.northing;
     document.getElementById('easting').value = result.easting;
@@ -367,7 +525,7 @@ async function sendToFormspree(payload) {
     document.getElementById('result-box').innerHTML = `
       <p><strong>UTM Easting:</strong> ${result.easting}</p>
       <p><strong>UTM Northing:</strong> ${result.northing}</p>
-      <p><strong>Height (m):</strong> ${parseFloat(height).toFixed(3)}</p>
+      <p><strong>Height (m):</strong> ${displayHeight}</p>
       <p><strong>Zone:</strong> ${result.zone}</p>
     `;
 // Live distance from previous picked point (updates each GPS fix)
@@ -414,6 +572,10 @@ async function sendToFormspree(payload) {
     }
 
     document.getElementById('status').textContent = 'GPS Tracking (Arc1960 36N)';
+
+    updateLocationPanels(c.latitude, c.longitude, accuracy, result.zone, displayHeight);
+    updateMapPosition(c.latitude, c.longitude, accuracy);
+    updateAccuracyChart(accuracy);
   }
 
   function handleGeoError(err) {
@@ -500,7 +662,8 @@ document.getElementById('pick-btn').addEventListener('click', function () {
       northing: document.getElementById('northing').value,
       easting: document.getElementById('easting').value,
       height: document.getElementById('height').value,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      distance: '—'
     };
     storedCoordinates.push(coordData);
         // 📡 Send picked coordinate to Formspree
@@ -536,10 +699,12 @@ if (storedCoordinates.length >= 2) {
 }
 
 distanceBox.innerHTML = `<strong>Distance from previous:</strong> ${distText}`;
+    coordData.distance = distText;
 
     // Show picked descriptions
     const descriptionsBox = document.getElementById('descriptions-box');
     descriptionsBox.textContent = storedCoordinates.map(c => c.description).join(', ');
+    renderPickedPointsTable();
 
     vibrateDevice();
 
@@ -708,6 +873,7 @@ document.getElementById('load-csv-btn').addEventListener('click', () => {
       .join(', ')}${storedCoordinates.length > 10 ? '…' : ''}`;
   }
 
+  renderPickedPointsTable();
   alert(`Loaded ${storedCoordinates.length} points from ${csv.name}`);
 });
 
