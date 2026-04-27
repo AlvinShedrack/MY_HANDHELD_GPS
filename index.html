@@ -241,6 +241,15 @@
       box-shadow: 0 22px 36px rgba(47, 105, 219, 0.24);
     }
 
+    .floating-pick-button {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+      margin: 0;
+    }
+
     .csv-box {
       margin-top: 20px;
     }
@@ -376,6 +385,9 @@
 
   <h1>My Handheld GPS</h1>
 
+  <!-- Floating Pick Button -->
+  <div class="circular-button floating-pick-button" id="pick-btn">PICK</div>
+
   <div class="card">
     <div class="grid two-columns">
       <div class="field-group">
@@ -390,9 +402,6 @@
     </div>
     
     <div class="grid">
-
-      <!-- Circular Button to Pick Coordinates -->
-      <div class="circular-button" id="pick-btn">PICK</div>
             <div class="dashboard-grid">
         <div class="result-box">
           <strong>Accuracy chart</strong>
@@ -401,6 +410,7 @@
           </div>
         </div>
       </div>
+            <div id="map" class="map-container"></div>
 <div id="distance-box" class="result-box" style="text-align:center">
   <strong>Distance from previous:</strong> — 
 </div>
@@ -440,7 +450,7 @@
       </div>
 
 
-      <div id="map" class="map-container"></div>
+
       <div class="result-box" id="result-box">
         <!-- Display the result here -->
       </div>
@@ -891,7 +901,11 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
     // Change background color and button color based on accuracy
-    if (accuracy < 11) {
+    if (accuracy <= 5) {
+      document.body.style.backgroundColor = '#a5d6a7'; // Darker green
+      document.getElementById('pick-btn').style.backgroundColor = '#16a34a'; // Bright green button
+      document.getElementById('pick-btn').style.color = '#ffffff'; // White text color for "PICK"
+    } else if (accuracy < 11) {
       document.body.style.backgroundColor = '#a5d6a7'; // Darker green
       document.getElementById('pick-btn').style.backgroundColor = '#388e3c'; // Dark green button
       document.getElementById('pick-btn').style.color = '#800080'; // Purple text color for "PICK"
