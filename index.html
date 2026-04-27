@@ -83,6 +83,46 @@
       position: relative;
     }
 
+    .map-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.88);
+      color: #f1f5f9;
+      padding: 8px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      font-size: 0.95rem;
+      backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+
+    .map-action-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.95);
+      color: #ffffff;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .map-action-button:hover {
+      transform: translateY(-1px);
+      background: #2563eb;
+    }
+
     .result-box table {
       width: 100%;
       border-collapse: collapse;
@@ -410,7 +450,10 @@
           </div>
         </div>
       </div>
-            <div id="map" class="map-container"></div>
+            <div id="map" class="map-container">
+              <div id="map-accuracy-overlay" class="map-overlay">Accuracy: —</div>
+              <button id="map-center-btn" class="map-action-button" type="button" title="Center on current location">📍</button>
+            </div>
 <div id="distance-box" class="result-box" style="text-align:center">
   <strong>Distance from previous:</strong> — 
 </div>
@@ -629,13 +672,39 @@ function convertLatLonFormats(lat, lon) {
 
 function initMap() {
   if (typeof L === 'undefined') return;
-  gpsMap = L.map('map', { center: [0, 0], zoom: 2, zoomControl: true });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
     maxZoom: 19
-  }).addTo(gpsMap);
+  });
+  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri, source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+    maxZoom: 19
+  });
+
+  gpsMap = L.map('map', {
+    center: [0, 0],
+    zoom: 2,
+    zoomControl: true,
+    layers: [osmLayer]
+  });
+
+  const baseMaps = {
+    'OpenStreetMap': osmLayer,
+    'Satellite': satelliteLayer
+  };
+  L.control.layers(baseMaps, null, { position: 'topright' }).addTo(gpsMap);
+
   gpsMarker = L.marker([0, 0]).addTo(gpsMap);
   // Removed blue tracking line: trackPolyline = L.polyline([], { color: '#2f69db', weight: 4, opacity: 0.9 }).addTo(gpsMap);
+  const centerBtn = document.getElementById('map-center-btn');
+  if (centerBtn) {
+    centerBtn.addEventListener('click', () => {
+      if (typeof currentLat === 'number' && typeof currentLon === 'number') {
+        gpsMap.setView([currentLat, currentLon], Math.max(16, gpsMap.getZoom()));
+      }
+    });
+  }
+
   gpsMap.whenReady(() => {
     setTimeout(() => gpsMap.invalidateSize(), 100);
   });
@@ -862,9 +931,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayHeight = height !== null ? parseFloat(height).toFixed(3) : 'N/A';
 
     document.getElementById('height').value = displayHeight;
-    document.getElementById('accuracy').value = accuracy.toFixed(0);
+    document.getElementById('accuracy').value = accuracy.toFixed(1);
     document.getElementById('northing').value = result.northing;
     document.getElementById('easting').value = result.easting;
+
+    const mapAccuracy = document.getElementById('map-accuracy-overlay');
+    if (mapAccuracy) {
+      mapAccuracy.textContent = `Accuracy: ${accuracy.toFixed(1)} m`;
+    }
 
     document.getElementById('result-box').innerHTML = `
       <p><strong>UTM Easting:</strong> ${result.easting}</p>
