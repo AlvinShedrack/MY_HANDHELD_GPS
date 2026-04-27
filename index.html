@@ -390,6 +390,14 @@
 
       <!-- Circular Button to Pick Coordinates -->
       <div class="circular-button" id="pick-btn">PICK</div>
+            <div class="dashboard-grid">
+        <div class="result-box">
+          <strong>Accuracy chart</strong>
+          <div style="position:relative;height:220px;">
+            <canvas id="accuracy-chart"></canvas>
+          </div>
+        </div>
+      </div>
 <div id="distance-box" class="result-box" style="text-align:center">
   <strong>Distance from previous:</strong> — 
 </div>
@@ -427,14 +435,7 @@
           <tbody></tbody>
         </table>
       </div>
-      <div class="dashboard-grid">
-        <div class="result-box">
-          <strong>Accuracy chart</strong>
-          <div style="position:relative;height:220px;">
-            <canvas id="accuracy-chart"></canvas>
-          </div>
-        </div>
-      </div>
+
 
       <div id="map" class="map-container"></div>
       <div class="result-box" id="result-box">
@@ -636,12 +637,6 @@ function updateMapPosition(lat, lon, accuracy) {
   trackRoute.push(coords);
   trackPolyline.setLatLngs(trackRoute);
   gpsMap.setView(coords, Math.max(13, gpsMap.getZoom()));
-  L.circle(coords, {
-    radius: Math.max(accuracy, 5),
-    color: '#2f69db',
-    fillColor: '#2f69db',
-    fillOpacity: 0.12
-  }).addTo(gpsMap);
 }
 
 function updateLocationPanels(lat, lon, accuracy, zone, displayHeight) {
