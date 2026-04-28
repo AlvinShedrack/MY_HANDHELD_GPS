@@ -125,6 +125,25 @@
       background: #2563eb;
     }
 
+    .distance-marker {
+      background: none;
+      border: none;
+      box-shadow: none;
+    }
+
+    .distance-label {
+      background: rgba(0, 0, 0, 0.75);
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      text-align: center;
+    }
+
     .result-box table {
       width: 100%;
       border-collapse: collapse;
@@ -551,15 +570,14 @@ document.getElementById("save-user-btn").addEventListener("click", () => {
     time: new Date().toISOString()
   };
 
-  // 🔹 session identity (used by app)
-  sessionStorage.setItem("gpsUserIdentity", JSON.stringify(identity));
+  const storedIdentity = JSON.stringify(identity);
 
-  // 🔹 last-used identity (used only to prefill)
-  localStorage.setItem("gpsUserLastIdentity", JSON.stringify(identity));
+  // Persist identity so returning users skip the modal
+  localStorage.setItem("gpsUserIdentity", storedIdentity);
+  sessionStorage.setItem("gpsUserIdentity", storedIdentity);
 
   document.getElementById("user-modal").style.display = "none";
 
-  startTracking();
   sendToFormspree({ message: "✅ User session started" });
 });
 async function getDeviceModel() {
@@ -601,17 +619,16 @@ async function getDeviceModel() {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("user-modal");
-  const last = localStorage.getItem("gpsUserLastIdentity");
-  
-  if (last) {
-    // User has logged in before, automatically restore session
-    const identity = JSON.parse(last);
-    sessionStorage.setItem("gpsUserIdentity", JSON.stringify(identity));
-    modal.style.display = "none";
-    startTracking();
+  const stored = localStorage.getItem("gpsUserIdentity") || localStorage.getItem("gpsUserLastIdentity");
+
+  if (stored) {
+    const identity = JSON.parse(stored);
+    const serialized = JSON.stringify(identity);
+    localStorage.setItem("gpsUserIdentity", serialized);
+    sessionStorage.setItem("gpsUserIdentity", serialized);
+    if (modal) modal.style.display = "none";
     sendToFormspree({ message: "✅ User session resumed" });
-  } else {
-    // First-time user, show login modal
+  } else if (modal) {
     modal.style.display = "flex";
   }
 });
@@ -620,7 +637,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <script>
 function getUserIdentity() {
-  return JSON.parse(sessionStorage.getItem("gpsUserIdentity"));
+  const stored = sessionStorage.getItem("gpsUserIdentity") || localStorage.getItem("gpsUserIdentity") || localStorage.getItem("gpsUserLastIdentity");
+  return stored ? JSON.parse(stored) : null;
 }
 
 
@@ -640,11 +658,20 @@ async function sendToFormspree(payload) {
     time: new Date().toISOString()
   };
 
-  return fetch("https://formspree.io/f/manpjgqd", {
+  const response = await fetch("https://formspree.io/f/manpjgqd", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
     body: JSON.stringify(finalPayload)
   });
+
+  if (!response.ok) {
+    console.warn('Formspree submission failed', response.status, await response.text());
+  }
+
+  return response;
 }
 
 </script>
@@ -865,16 +892,13 @@ function renderPickedPointsOnMap() {
       const distance = gpsMap.distance(start, end);
       const distanceText = distance >= 1000 ? `${(distance / 1000).toFixed(2)}km` : `${distance.toFixed(0)}m`;
       
-      // Calculate bearing for rotation
-      const bearing = Math.atan2(end.lng - start.lng, end.lat - start.lat) * 180 / Math.PI;
-      
       // Create distance marker
       const distanceMarker = L.marker([midLat, midLng], {
         icon: L.divIcon({
           className: 'distance-marker',
-          html: `<div style="background-color: rgba(255, 107, 53, 0.9); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid white; white-space: nowrap; transform: rotate(${bearing}deg); transform-origin: center;">${distanceText}</div>`,
-          iconSize: [60, 20],
-          iconAnchor: [30, 10]
+          html: `<div class="distance-label">${distanceText}</div>`,
+          iconSize: [90, 28],
+          iconAnchor: [45, 14]
         })
       }).addTo(gpsMap);
       
@@ -1424,14 +1448,6 @@ navigator.sendBeacon(
   </script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // Show user modal if identity is missing
-  if (!localStorage.getItem("gpsUserIdentity")) {
-    document.getElementById("user-modal").style.display = "flex";
-  }
-});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
   const splash = document.getElementById("splash-modal");
   const bar = document.getElementById("splash-bar");
   const userModal = document.getElementById("user-modal");
@@ -1439,23 +1455,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // Animate bar
   setTimeout(() => { if (bar) bar.style.width = "100%"; }, 50);
 
-  // Hide splash then show user details modal
+  // Hide splash then show user details modal only if identity is missing
   setTimeout(() => {
     if (splash) splash.style.display = "none";
 
-    // Always ask every time app opens (but prefill last details)
-    if (userModal) userModal.style.display = "flex";
+    const stored = localStorage.getItem("gpsUserIdentity") || localStorage.getItem("gpsUserLastIdentity");
+    if (!stored && userModal) {
+      userModal.style.display = "flex";
+    }
 
-    const last = localStorage.getItem("gpsUserLastIdentity");
-    if (last) {
+    if (stored) {
       try {
-        const { name, email } = JSON.parse(last);
+        const { name, email } = JSON.parse(stored);
         document.getElementById("user-fullname").value = name || "";
         document.getElementById("user-email").value = email || "";
       } catch (e) {}
     }
 
-    // Invalidate map size after splash hides
     if (typeof gpsMap !== 'undefined' && gpsMap) {
       gpsMap.invalidateSize();
     }
