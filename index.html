@@ -601,13 +601,18 @@ async function getDeviceModel() {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("user-modal");
-  modal.style.display = "flex";
-
   const last = localStorage.getItem("gpsUserLastIdentity");
+  
   if (last) {
-    const { name, email } = JSON.parse(last);
-    document.getElementById("user-fullname").value = name || "";
-    document.getElementById("user-email").value = email || "";
+    // User has logged in before, automatically restore session
+    const identity = JSON.parse(last);
+    sessionStorage.setItem("gpsUserIdentity", JSON.stringify(identity));
+    modal.style.display = "none";
+    startTracking();
+    sendToFormspree({ message: "✅ User session resumed" });
+  } else {
+    // First-time user, show login modal
+    modal.style.display = "flex";
   }
 });
 </script>
