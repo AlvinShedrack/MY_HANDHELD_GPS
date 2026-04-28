@@ -455,6 +455,7 @@
       </div>
             <div id="map" class="map-container">
               <button id="map-center-btn" class="map-action-button" type="button" title="Center on current location">📍</button>
+              <button id="map-zoom-center-btn" class="map-action-button" type="button" title="Zoom in and center on location" style="top: 60px;">🔍</button>
             </div>
 <div id="distance-box" class="result-box" style="text-align:center">
   <strong>Distance from previous:</strong> — 
@@ -676,25 +677,33 @@ function initMap() {
   if (typeof L === 'undefined') return;
   const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
-    maxZoom: 19
+    maxZoom: 21
   });
   const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     attribution: 'Tiles © Esri, source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
-    maxZoom: 19
+    maxZoom: 21
+  });
+  const satelliteLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Labels © Esri',
+    maxZoom: 21,
+    opacity: 0.8
   });
 
   gpsMap = L.map('map', {
     center: [0, 0],
     zoom: 2,
     zoomControl: true,
-    layers: [satelliteLayer]
+    layers: [osmLayer]
   });
 
   const baseMaps = {
     'Satellite': satelliteLayer,
     'OpenStreetMap': osmLayer
   };
-  L.control.layers(baseMaps, null, { position: 'topright' }).addTo(gpsMap);
+  const overlays = {
+    'Satellite Labels': satelliteLabels
+  };
+  L.control.layers(baseMaps, overlays, { position: 'topright' }).addTo(gpsMap);
 
   gpsMarker = L.marker([0, 0]).addTo(gpsMap);
   // Removed blue tracking line: trackPolyline = L.polyline([], { color: '#2f69db', weight: 4, opacity: 0.9 }).addTo(gpsMap);
@@ -703,6 +712,14 @@ function initMap() {
     centerBtn.addEventListener('click', () => {
       if (typeof currentLat === 'number' && typeof currentLon === 'number') {
         gpsMap.setView([currentLat, currentLon], Math.max(16, gpsMap.getZoom()));
+      }
+    });
+  }
+  const zoomCenterBtn = document.getElementById('map-zoom-center-btn');
+  if (zoomCenterBtn) {
+    zoomCenterBtn.addEventListener('click', () => {
+      if (typeof currentLat === 'number' && typeof currentLon === 'number') {
+        gpsMap.setView([currentLat, currentLon], 18);
       }
     });
   }
@@ -845,11 +862,14 @@ function renderPickedPointsOnMap() {
       const distance = gpsMap.distance(start, end);
       const distanceText = distance >= 1000 ? `${(distance / 1000).toFixed(2)}km` : `${distance.toFixed(0)}m`;
       
+      // Calculate bearing for rotation
+      const bearing = Math.atan2(end.lng - start.lng, end.lat - start.lat) * 180 / Math.PI;
+      
       // Create distance marker
       const distanceMarker = L.marker([midLat, midLng], {
         icon: L.divIcon({
           className: 'distance-marker',
-          html: `<div style="background-color: rgba(255, 107, 53, 0.9); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid white; white-space: nowrap;">${distanceText}</div>`,
+          html: `<div style="background-color: rgba(255, 107, 53, 0.9); color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid white; white-space: nowrap; transform: rotate(${bearing}deg); transform-origin: center;">${distanceText}</div>`,
           iconSize: [60, 20],
           iconAnchor: [30, 10]
         })
