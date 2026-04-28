@@ -102,8 +102,8 @@
 
     .map-action-button {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      bottom: 10px;
+      left: 10px;
       z-index: 1000;
       width: 42px;
       height: 42px;
@@ -446,7 +446,7 @@
     
     <div class="grid">
             <div class="dashboard-grid">
-        <div class="result-box">
+        <div class="result-box" style="font-size: 16px; color: #08e425;font-weight: bold;">
           <strong>Accuracy chart</strong>
           <div style="position:relative;height:180px;">
             <canvas id="accuracy-chart"></canvas>
@@ -455,13 +455,13 @@
       </div>
             <div id="map" class="map-container">
               <button id="map-center-btn" class="map-action-button" type="button" title="Center on current location">📍</button>
-              <button id="map-zoom-center-btn" class="map-action-button" type="button" title="Zoom in and center on location" style="top: 60px;">🔍</button>
+              <button id="map-zoom-center-btn" class="map-action-button" type="button" title="Zoom in and center on location" style="bottom: 60px;">🔍</button>
             </div>
 <div id="distance-box" class="result-box" style="text-align:center">
   <strong>Distance from previous:</strong> — 
 </div>
 
-      <div id="descriptions-box" class="result-box">
+      <div id="descriptions-box" class="result-box" style="font-size: 16px; color: #08e425;font-weight: bold;">
         <strong>Picked Descriptions:</strong>
       </div>
       <!-- Hidden Dynamic Fields for Northing, Easting, and Height -->
@@ -481,7 +481,7 @@
       <div class="status">
         <span id="status" class="pill">Waiting for GPS fix...</span>
       </div>
-            <div id="points-table" class="result-box" style="margin-top:8px;">
+            <div id="points-table" class="result-box"style="font-size: 16px; color: #08e425;font-weight: bold;">
         <strong>Picked points</strong>
         <table id="picked-points-table">
           <thead>
@@ -679,15 +679,16 @@ function initMap() {
     attribution: '© OpenStreetMap contributors',
     maxZoom: 21
   });
-  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles © Esri, source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+  const satelliteHybridLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri',
+    maxZoom: 21,
+    layers: 'Satellite'
+  });
+  const satelliteLabelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Labels © Esri',
     maxZoom: 21
   });
-  const satelliteLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Labels © Esri',
-    maxZoom: 21,
-    opacity: 0.8
-  });
+  const satelliteHybrid = L.layerGroup([satelliteHybridLayer, satelliteLabelsLayer]);
 
   gpsMap = L.map('map', {
     center: [0, 0],
@@ -697,13 +698,10 @@ function initMap() {
   });
 
   const baseMaps = {
-    'Satellite': satelliteLayer,
-    'OpenStreetMap': osmLayer
+    'OpenStreetMap': osmLayer,
+    'Satellite Hybrid': satelliteHybrid
   };
-  const overlays = {
-    'Satellite Labels': satelliteLabels
-  };
-  L.control.layers(baseMaps, overlays, { position: 'topright' }).addTo(gpsMap);
+  L.control.layers(baseMaps, null, { position: 'topright' }).addTo(gpsMap);
 
   gpsMarker = L.marker([0, 0]).addTo(gpsMap);
   // Removed blue tracking line: trackPolyline = L.polyline([], { color: '#2f69db', weight: 4, opacity: 0.9 }).addTo(gpsMap);
