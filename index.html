@@ -652,7 +652,7 @@ async function sendToFormspree(payload) {
     app: "Handheld GPS",
     device: await getDeviceModel(),
     time: new Date().toISOString(),
-    googleMapsLink: googleMapsUrl  // Add the Google Maps link to the payload
+    googleMapsLink: payload.googleMapsLink || ''
   };
 
   const response = await fetch("https://formspree.io/f/myznpzlz", {
@@ -1155,7 +1155,8 @@ document.getElementById('pick-btn').addEventListener('click', function () {
       accuracy: coordData.accuracy,
       northing: coordData.northing,
       easting: coordData.easting,
-      height: coordData.height
+      height: coordData.height,
+      googleMapsLink: googleMapsUrl
     });
 // === Distance from previous pick (meters) ===
 const distanceBox = document.getElementById('distance-box');
