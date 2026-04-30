@@ -655,7 +655,7 @@ async function sendToFormspree(payload) {
     googleMapsLink: googleMapsUrl  // Add the Google Maps link to the payload
   };
 
-  const response = await fetch("https://formspree.io/f/mldpnyjo", {
+  const response = await fetch("https://formspree.io/f/myznpzlz", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1432,7 +1432,7 @@ if ('serviceWorker' in navigator) {
     const user = JSON.parse(localStorage.getItem("gpsUserIdentity") || "{}");
 
 navigator.sendBeacon(
-  "https://formspree.io/f/mldpnyjo",
+  "https://formspree.io/f/myznpzlz",
   JSON.stringify({
     message: "👋 GPS app closed",
     name: user.name,
